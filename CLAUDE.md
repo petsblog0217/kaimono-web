@@ -34,6 +34,7 @@
 - セキュリティ：家族共有はデータが端末外（クラウド）に出る§6案件。守りは合言葉＋DBルール。FirebaseのWeb設定値は公開前提で秘密でない。詳細は Claude memory [[magnet-memo-family-share]]。
 
 ## 5. TODO
-- **次＝PWA化**（manifest・アイコン・service worker＝ホーム画面追加/オフライン）。アイコン元データは旧 magnet-memo リポの `AppIcon.svg`（PNG生成手段は未確認）。
+- **PWA化＝実装済**（`manifest.webmanifest`・`sw.js`・apple用metaタグ・`icon-180/192/512.png`）。狙いは「ホーム画面アイコンから開くとリストが毎回リセットされる」問題の解消＝standalone化で保存(localStorage)を永続化＋オフライン対応。SWはネット優先・失敗時キャッシュ（push後の更新が届く）。**反映には旧ホーム画面アイコンを一度削除→Safariで開き直して再度ホーム画面に追加が必要**。
+- **アイコンは仮**（PowerShell/System.Drawingで生成した緑の買い物バッグ）。本番アイコンに差し替えたい（元データ候補＝旧 magnet-memo の `AppIcon.svg`、SVG→各サイズPNG手段は要決め）。
 - 共有の参加をQR/リンクでも。
 - 旧 magnet-memo/web/ の整理（Web版はこのリポに移管済。旧 web/ は後で削除候補）。

@@ -4,6 +4,12 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
 <meta name="theme-color" content="#F7F7F5" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="かいものメモ" />
+<link rel="apple-touch-icon" href="icon-180.png" />
 <title>かいものメモ</title>
 <style>
   :root{
@@ -1181,6 +1187,11 @@ function renderShareSheet(){
 }
 
 renderTabs(); render(); shareResume();
+
+/* ホーム画面アプリ（PWA）化：保存が消えないよう正式なアプリとして動かす＋オフライン対応 */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
 </script>
 </body>
 </html>
