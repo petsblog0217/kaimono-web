@@ -192,6 +192,12 @@
   .share-steps b{color:var(--ink);}
   .share-steps code{background:var(--bg);padding:1px 5px;border-radius:5px;font-size:11.5px;}
 
+  /* 商品ミニメニュー（長押し） */
+  .im-step{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--bg);border-radius:16px;padding:8px;margin:4px 0 8px;}
+  .im-step button{width:50px;height:50px;border:none;background:var(--card);color:var(--ink);font-size:26px;font-weight:800;border-radius:13px;cursor:pointer;box-shadow:var(--shadow-sm);display:grid;place-items:center;}
+  .im-step button:active{transform:scale(.93);}
+  .im-step .n{min-width:64px;text-align:center;font-size:24px;font-weight:800;}
+
   /* エディタ */
   #storeEditBody h3{margin:2px 0 4px;font-size:19px;font-weight:800;}
   .ed-label{font-size:12px;font-weight:800;color:var(--ink-2);margin:15px 2px 7px;}
@@ -266,6 +272,12 @@
 <div class="sheet" id="shareSheet">
   <div class="grip"></div>
   <div id="shareBody" style="overflow-y:auto;"></div>
+</div>
+
+<div class="scrim" id="scrim5"></div>
+<div class="sheet" id="itemSheet">
+  <div class="grip"></div>
+  <div id="itemMenuBody" style="overflow-y:auto;"></div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -810,8 +822,50 @@ function tile(it,storeId){
   el.innerHTML='<div class="ic">'+svgIcon(it.icon)+'</div><div class="nm">'+esc(it.name)+'</div>'+
     (it.qty>1?'<div class="qz">×'+it.qty+'</div>':'')+
     '<div class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>';
-  el.onclick=()=>{ it.done=!it.done; save(); render(); };
+  el.onclick=()=>{ if(el._suppress){ el._suppress=false; return; } it.done=!it.done; save(); render(); };
+  attachLongPress(el, ()=>{ el._suppress=true; openItemMenu(it.id, storeId); });
   return el;
+}
+
+/* 長押し検知（タップと両立。長押し後のクリックは tile 側 _suppress で無視） */
+function attachLongPress(el, fn){
+  let timer=null, sx=0, sy=0;
+  const start=(x,y)=>{ sx=x; sy=y; clearTimeout(timer); timer=setTimeout(()=>{ timer=null; fn(); }, 500); };
+  const move=(x,y)=>{ if(timer && (Math.abs(x-sx)>10 || Math.abs(y-sy)>10)){ clearTimeout(timer); timer=null; } };
+  const cancel=()=>{ clearTimeout(timer); timer=null; };
+  el.addEventListener('touchstart', e=>{ const p=e.touches[0]; start(p.clientX,p.clientY); }, {passive:true});
+  el.addEventListener('touchmove', e=>{ const p=e.touches[0]; move(p.clientX,p.clientY); }, {passive:true});
+  el.addEventListener('touchend', cancel);
+  el.addEventListener('mousedown', e=>start(e.clientX,e.clientY));
+  el.addEventListener('mousemove', e=>move(e.clientX,e.clientY));
+  el.addEventListener('mouseup', cancel);
+  el.addEventListener('mouseleave', cancel);
+  el.addEventListener('contextmenu', e=>e.preventDefault());
+}
+
+/* ===== 商品ミニメニュー（数量 −＋・削除） ===== */
+const itemSheet=$('#itemSheet'), scrim5=$('#scrim5');
+scrim5.onclick=closeItemMenu;
+let menuRef=null;  // {storeId, id}
+function currentMenuItem(){ if(!menuRef) return null; const arr=state.items[menuRef.storeId]||[]; return arr.find(i=>i.id===menuRef.id)||null; }
+function openItemMenu(id, storeId){ menuRef={storeId, id}; renderItemMenu(); scrim5.classList.add('show'); itemSheet.classList.add('show'); }
+function closeItemMenu(){ scrim5.classList.remove('show'); itemSheet.classList.remove('show'); menuRef=null; }
+function renderItemMenu(){
+  const it=currentMenuItem(); if(!it){ closeItemMenu(); return; }
+  const store=storeById(menuRef.storeId)||STORES[0];
+  itemSheet.style.setProperty('--accent', it.color||store.accent);
+  itemSheet.style.setProperty('--accent-soft', it.color?softOf(it.color):store.soft);
+  $('#itemMenuBody').innerHTML=
+    '<h3>'+esc(it.name)+'</h3>'+
+    '<div class="ed-label">数量</div>'+
+    '<div class="im-step"><button id="im-minus">−</button><span class="n">'+(it.qty||1)+'</span><button id="im-plus">＋</button></div>'+
+    '<div class="ed-actions"><button class="ed-del" id="im-del" style="flex:1;text-align:center">この商品をリストから削除</button></div>';
+  $('#im-minus').onclick=()=>{ it.qty=Math.max(1,(it.qty||1)-1); save(); renderItemMenu(); render(); };
+  $('#im-plus').onclick=()=>{ it.qty=(it.qty||1)+1; save(); renderItemMenu(); render(); };
+  $('#im-del').onclick=()=>{
+    const arr=state.items[menuRef.storeId]||[]; const i=arr.findIndex(x=>x.id===it.id); if(i>=0) arr.splice(i,1);
+    save(); closeItemMenu(); render();
+  };
 }
 
 /* 買ったものを在庫へ補充して、リストから消す */
