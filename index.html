@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<meta name="theme-color" content="#F7F7F5" />
+<title>かいものメモ</title>
+<style>
+  :root{
+    --bg:#F7F7F5; --card:#FFFFFF; --ink:#2B2B2B; --ink-2:#6E6E68; --muted:#A6A6A0; --line:#ECEAE6;
+    --accent:#7FB893; --accent-soft:#E9F3EC;
+    --shadow-sm:0 1px 2px rgba(30,28,24,.04);
+    --shadow:0 1px 2px rgba(30,28,24,.05), 0 8px 22px rgba(30,28,24,.05);
+    --radius:18px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Segoe UI",sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.4;}
+  .app{max-width:480px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;position:relative;background:var(--bg);}
+
+  header{padding:calc(env(safe-area-inset-top) + 14px) 18px 6px;display:flex;align-items:center;gap:12px;}
+  .title{font-size:23px;font-weight:800;letter-spacing:.02em;flex:1;}
+  .title small{display:block;font-size:10.5px;font-weight:600;color:var(--muted);letter-spacing:.2em;margin-top:1px;}
+  .icon-btn{width:38px;height:38px;border:none;background:var(--card);border-radius:50%;display:grid;place-items:center;box-shadow:var(--shadow-sm);color:var(--ink-2);cursor:pointer;flex:0 0 auto;}
+  .icon-btn:active{transform:scale(.93);}
+  .icon-btn svg{width:19px;height:19px;}
+  .hdr-stock{display:flex;align-items:center;gap:6px;padding:9px 15px;border:none;border-radius:999px;background:#5C5C57;color:#fff;font-size:13.5px;font-weight:800;cursor:pointer;flex:0 0 auto;box-shadow:0 4px 12px rgba(30,28,24,.16);transition:transform .12s ease,box-shadow .2s ease;}
+  .hdr-stock:active{transform:scale(.95);}
+  .hdr-stock svg{width:17px;height:17px;}
+  .hdr-stock.active{box-shadow:0 0 0 3px rgba(92,92,87,.28),0 4px 12px rgba(30,28,24,.16);}
+
+  /* ===== タブ ===== */
+  .tabs{display:flex;gap:8px;overflow-x:auto;padding:6px 16px 12px;scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:8px 14px 8px 11px;background:var(--card);border:1px solid var(--line);border-radius:999px;font-size:13.5px;font-weight:700;color:var(--ink-2);cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .12s ease;}
+  .tab:active{transform:scale(.96);}
+  .tab svg{width:16px;height:16px;}
+  .tab.active{color:#fff;border-color:transparent;}
+
+  main{flex:1;overflow-y:auto;padding:4px 16px 120px;}
+
+  /* ===== お店セクション ===== */
+  .section{margin-bottom:22px;}
+  .sec-head{display:flex;align-items:center;gap:11px;padding:0 4px 10px;}
+  .sec-ic{width:36px;height:36px;border-radius:11px;flex:0 0 auto;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;}
+  .sec-ic svg{width:20px;height:20px;}
+  .sec-dot{width:16px;height:16px;border-radius:50%;flex:0 0 auto;}
+  .tab-dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;}
+  .set-dot{width:22px;height:22px;border-radius:50%;flex:0 0 auto;}
+  .sec-name{font-size:17px;font-weight:800;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sec-remain{font-size:11.5px;font-weight:700;color:var(--muted);background:var(--card);border:1px solid var(--line);padding:2px 9px;border-radius:999px;}
+  .sec-add{width:34px;height:34px;border-radius:50%;border:none;background:var(--accent);color:#fff;display:grid;place-items:center;cursor:pointer;flex:0 0 auto;box-shadow:0 3px 10px rgba(30,28,24,.12);}
+  .sec-add:active{transform:scale(.9);}
+  .sec-add svg{width:18px;height:18px;}
+
+  .sub-head{font-size:11px;font-weight:800;color:var(--ink-2);letter-spacing:.04em;padding:6px 6px 5px;}
+
+  /* 2列タイル */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .tile{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px 10px;cursor:pointer;box-shadow:var(--shadow-sm);transition:background .15s ease,transform .1s ease;min-width:0;}
+  .tile:active{transform:scale(.98);background:var(--accent-soft);}
+  .tile .ic{width:30px;height:30px;flex:0 0 auto;border-radius:9px;background:var(--accent-soft);display:grid;place-items:center;color:var(--accent);transition:all .2s ease;}
+  .tile .ic svg{width:17px;height:17px;}
+  .tile .nm{flex:1;min-width:0;font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .2s ease;}
+  .tile .qz{font-size:11px;font-weight:800;color:var(--ink-2);background:var(--bg);border-radius:7px;padding:1px 6px;}
+  .tile .ck{width:20px;height:20px;flex:0 0 auto;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;color:#fff;transition:all .2s ease;}
+  .tile .ck svg{width:12px;height:12px;opacity:0;transform:scale(.5);transition:all .2s ease;}
+  .tile.done{background:var(--bg);}
+  .tile.done .nm{color:var(--muted);text-decoration:line-through;text-decoration-thickness:1.5px;}
+  .tile.done .ic{background:var(--card);color:var(--muted);}
+  .tile.done .qz{opacity:.4;}
+  .tile.done .ck{background:var(--accent);border-color:var(--accent);}
+  .tile.done .ck svg{opacity:1;transform:scale(1);}
+
+  .sec-empty{background:var(--card);border:1px dashed var(--line);border-radius:var(--radius);padding:15px;display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;}
+  .sec-empty:active{background:var(--accent-soft);}
+  .sec-empty .pl{width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:0 0 auto;}
+  .sec-empty .pl svg{width:16px;height:16px;}
+  .clear-done{display:flex;align-items:center;justify-content:center;gap:6px;margin:10px auto 0;background:none;border:none;color:var(--accent);font-size:12px;font-weight:800;padding:7px 12px;cursor:pointer;}
+  .clear-done:active{opacity:.6;}
+  .clear-done svg{width:15px;height:15px;}
+
+  /* ===== 在庫ページ ===== */
+  .stock-lead{font-size:13px;font-weight:600;color:var(--ink-2);padding:2px 4px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .stock-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+  .stk{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:11px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:9px;transition:opacity .2s ease;}
+  .stk-top{display:flex;align-items:center;gap:9px;}
+  .stk .ic{width:32px;height:32px;flex:0 0 auto;border-radius:9px;background:var(--accent-soft);display:grid;place-items:center;color:var(--accent);}
+  .stk .ic svg{width:18px;height:18px;}
+  .stk .nm{flex:1;min-width:0;font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .stk-del{width:24px;height:24px;border:none;background:var(--bg);border-radius:7px;color:var(--muted);display:grid;place-items:center;cursor:pointer;flex:0 0 auto;}
+  .stk-del:active{color:#D9534F;}
+  .stk-del svg{width:14px;height:14px;}
+  .stk-bot{display:flex;align-items:center;gap:8px;}
+  .step{display:flex;align-items:center;gap:2px;background:var(--bg);border-radius:10px;padding:2px;}
+  .step button{width:26px;height:26px;border:none;background:none;color:var(--ink-2);font-size:17px;font-weight:800;cursor:pointer;border-radius:8px;display:grid;place-items:center;}
+  .step button:active{background:var(--card);}
+  .step .n{min-width:24px;text-align:center;font-size:14px;font-weight:800;}
+  .to-cart{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;background:var(--accent-soft);color:var(--accent);border:none;border-radius:10px;padding:7px;font-size:12px;font-weight:800;cursor:pointer;}
+  .to-cart:active{transform:scale(.97);}
+  .to-cart svg{width:15px;height:15px;}
+  .stk.zero{opacity:.45;}
+  .stk.zero .ic{background:var(--bg);color:var(--muted);}
+
+  .page-empty{text-align:center;color:var(--muted);padding:60px 30px;}
+  .page-empty .big{width:60px;height:60px;border-radius:18px;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;margin:0 auto 14px;color:var(--accent);box-shadow:var(--shadow-sm);}
+  .page-empty .big svg{width:28px;height:28px;}
+  .page-empty p{margin:4px 0;font-size:14px;font-weight:600;}
+  .page-empty .sub{font-size:12.5px;color:var(--muted);font-weight:500;}
+
+  /* ===== 追加シート ===== */
+  .scrim{position:fixed;inset:0;background:rgba(30,28,24,.32);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:30;backdrop-filter:blur(2px);}
+  .scrim.show{opacity:1;pointer-events:auto;}
+  .sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%) translateY(100%);width:100%;max-width:480px;background:var(--bg);border-radius:26px 26px 0 0;padding:10px 20px calc(env(safe-area-inset-bottom) + 20px);z-index:31;transition:transform .32s cubic-bezier(.25,.9,.3,1);box-shadow:0 -10px 40px rgba(30,28,24,.16);max-height:88vh;display:flex;flex-direction:column;}
+  .sheet.show{transform:translateX(-50%) translateY(0);}
+  .grip{width:38px;height:5px;border-radius:999px;background:var(--line);margin:6px auto 13px;}
+  .sheet h3{margin:0 0 3px;font-size:18px;font-weight:800;}
+  .sheet .hint{font-size:12px;color:var(--muted);font-weight:600;margin:0 0 13px;}
+  .search{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 15px;box-shadow:var(--shadow-sm);}
+  .search svg{width:19px;height:19px;color:var(--muted);flex:0 0 auto;}
+  .search input{border:none;background:none;outline:none;font-size:16px;font-weight:600;color:var(--ink);width:100%;font-family:inherit;}
+  .search input::placeholder{color:var(--muted);font-weight:500;}
+  .suggest{margin-top:12px;overflow-y:auto;flex:1;}
+  .sug-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
+  .sug-tile{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 7px 11px;cursor:pointer;transition:transform .1s ease,background .15s ease;}
+  .sug-tile:active{transform:scale(.96);background:var(--accent-soft);}
+  .sug-tile .sug-icon{width:38px;height:38px;border-radius:11px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;}
+  .sug-tile .sug-icon svg{width:20px;height:20px;}
+  .sug-tile .sug-name{font-size:12px;font-weight:700;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .new-card{background:var(--card);border:1.5px dashed var(--accent);border-radius:14px;padding:14px;margin-bottom:8px;}
+  .new-top{font-size:14px;font-weight:700;margin-bottom:11px;}
+  .new-top b{color:var(--accent);}
+  .cat-pick{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:13px;}
+  .cat-chip{font-size:12.5px;font-weight:700;color:var(--ink-2);background:var(--bg);border:1px solid var(--line);padding:7px 12px;border-radius:999px;cursor:pointer;}
+  .cat-chip.sel{background:var(--accent);color:#fff;border-color:transparent;}
+  .new-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .reg-toggle{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--ink-2);cursor:pointer;user-select:none;}
+  .reg-toggle .box{width:22px;height:22px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;color:#fff;transition:all .15s ease;}
+  .reg-toggle .box svg{width:13px;height:13px;opacity:0;}
+  .reg-toggle.on .box{background:var(--accent);border-color:var(--accent);}
+  .reg-toggle.on .box svg{opacity:1;}
+  .add-btn{background:var(--accent);color:#fff;border:none;padding:11px 20px;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;}
+  .add-btn:active{transform:scale(.96);}
+
+  .icon-btn.active{background:#5C5C57;color:#fff;}
+
+  /* ===== 設定・管理 ===== */
+  .set-h{font-size:13px;font-weight:800;color:var(--ink-2);letter-spacing:.04em;padding:6px 4px 10px;}
+  .set-list{display:flex;flex-direction:column;gap:9px;margin-bottom:14px;}
+  .set-row{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;box-shadow:var(--shadow-sm);}
+  .set-row .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;}
+  .set-row .ic svg{width:19px;height:19px;}
+  .set-row .nm{flex:1;min-width:0;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .set-row .nm small{display:block;font-size:11px;color:var(--muted);font-weight:600;}
+  .mini-btn{border:none;background:var(--bg);color:var(--ink-2);border-radius:9px;padding:7px 11px;font-size:12.5px;font-weight:800;cursor:pointer;flex:0 0 auto;}
+  .mini-btn:active{transform:scale(.95);}
+  .mini-btn.del{color:#C97B6B;}
+  .add-row{display:flex;align-items:center;justify-content:center;gap:7px;background:none;border:1.5px dashed var(--line);border-radius:14px;padding:13px;color:var(--ink-2);font-size:13.5px;font-weight:800;cursor:pointer;width:100%;}
+  .add-row:active{background:var(--accent-soft);}
+  .add-row svg{width:17px;height:17px;}
+
+  /* 辞書（商品）管理 */
+  .dict-group{margin-bottom:8px;}
+  .dict-gh{display:flex;align-items:center;gap:10px;width:100%;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:11px 13px;cursor:pointer;box-shadow:var(--shadow-sm);font-family:inherit;color:var(--ink);}
+  .dict-gh:active{transform:scale(.99);}
+  .dict-gh .dot{width:15px;height:15px;border-radius:50%;flex:0 0 auto;}
+  .dict-gh .gname{flex:1;font-size:14.5px;font-weight:800;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .dict-gh .cnt{font-size:11.5px;font-weight:800;color:var(--muted);background:var(--bg);border-radius:999px;padding:2px 9px;}
+  .dict-gh .chev{width:18px;height:18px;color:var(--muted);flex:0 0 auto;transition:transform .22s ease;}
+  .dict-gh.open .chev{transform:rotate(180deg);}
+  .dict-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 10px;}
+  .dict-card{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:8px 9px;cursor:pointer;box-shadow:var(--shadow-sm);min-width:0;transition:background .15s ease,transform .1s ease;}
+  .dict-card:active{transform:scale(.98);background:var(--accent-soft);}
+  .dict-card .ic{width:30px;height:30px;flex:0 0 auto;border-radius:9px;display:grid;place-items:center;}
+  .dict-card .ic svg{width:17px;height:17px;}
+  .dict-card .tx{flex:1;min-width:0;}
+  .dict-card .nm{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .dict-card .ct{font-size:10.5px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
+  .dict-card .x{width:24px;height:24px;border:none;background:var(--bg);border-radius:7px;color:var(--muted);display:grid;place-items:center;cursor:pointer;flex:0 0 auto;}
+  .dict-card .x:active{color:#C97B6B;}
+  .dict-card .x svg{width:13px;height:13px;}
+  .dict-add{display:flex;align-items:center;justify-content:center;gap:6px;background:none;border:1.5px dashed var(--line);border-radius:13px;padding:9px;color:var(--ink-2);font-size:12.5px;font-weight:800;cursor:pointer;font-family:inherit;min-height:48px;}
+  .dict-add:active{background:var(--accent-soft);}
+  .dict-add svg{width:15px;height:15px;}
+
+  /* 家族と共有 */
+  .share-code{font-size:30px;font-weight:800;letter-spacing:.1em;text-align:center;background:var(--card);border:1.5px dashed var(--line);border-radius:14px;padding:18px 12px;margin:8px 0 4px;user-select:all;word-break:break-all;}
+  .share-status{display:flex;align-items:center;justify-content:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--ink-2);margin:10px 0 16px;}
+  .share-status .d{width:9px;height:9px;border-radius:50%;background:var(--muted);}
+  .share-status.on .d{background:#4CAF82;}
+  .share-steps{font-size:12.5px;line-height:1.75;color:var(--ink-2);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;}
+  .share-steps b{color:var(--ink);}
+  .share-steps code{background:var(--bg);padding:1px 5px;border-radius:5px;font-size:11.5px;}
+
+  /* エディタ */
+  #storeEditBody h3{margin:2px 0 4px;font-size:19px;font-weight:800;}
+  .ed-label{font-size:12px;font-weight:800;color:var(--ink-2);margin:15px 2px 7px;}
+  .ed-input{width:100%;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:12px 14px;font-size:16px;font-weight:600;color:var(--ink);font-family:inherit;outline:none;}
+  .ed-input:focus{border-color:var(--accent);}
+  .swatches{display:flex;flex-wrap:wrap;gap:9px;}
+  .sw{width:34px;height:34px;border-radius:50%;cursor:pointer;border:3px solid transparent;box-shadow:var(--shadow-sm);transition:transform .1s ease;}
+  .sw:active{transform:scale(.9);}
+  .sw.sel{border-color:var(--ink);}
+  .icon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;max-height:168px;overflow-y:auto;padding:2px;}
+  .ic-pick{aspect-ratio:1;border-radius:11px;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;cursor:pointer;color:var(--ink-2);}
+  .ic-pick svg{width:20px;height:20px;}
+  .ic-pick.sel{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+  .cat-edit{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .cat-edit input{flex:1;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:9px 12px;font-size:14px;font-weight:600;font-family:inherit;outline:none;color:var(--ink);}
+  .cat-edit input:focus{border-color:var(--accent);}
+  .cat-edit .x{width:32px;height:32px;border:none;background:var(--bg);border-radius:9px;color:var(--muted);cursor:pointer;flex:0 0 auto;display:grid;place-items:center;}
+  .cat-edit .x svg{width:15px;height:15px;}
+  .ed-actions{display:flex;gap:10px;margin-top:20px;}
+  .ed-save{flex:1;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:800;cursor:pointer;}
+  .ed-save:active{transform:scale(.98);}
+  .ed-del{background:none;border:1px solid var(--line);color:#C97B6B;border-radius:12px;padding:13px 16px;font-size:14px;font-weight:800;cursor:pointer;}
+
+  @media (prefers-color-scheme: dark){
+    :root{--bg:#1A1A18;--card:#252523;--ink:#F0EFEB;--ink-2:#B8B6AF;--muted:#7A7872;--line:#34332F;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 22px rgba(0,0,0,.25);--shadow-sm:0 1px 2px rgba(0,0,0,.25);}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="title">かいものメモ<small>SHOPPING LIST</small></div>
+    <button class="hdr-stock" id="stockBtn" title="家の在庫">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 9.5V19h12V9.5"/><path d="M10 19v-5h4v5"/></svg>在庫
+    </button>
+    <button class="icon-btn" id="shareBtn" title="家族と共有（あとで）">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
+    </button>
+    <button class="icon-btn" id="settingsBtn" title="設定・管理">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg>
+    </button>
+  </header>
+  <div class="tabs" id="tabs"></div>
+  <main id="view"></main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet">
+  <div class="grip"></div>
+  <h3 id="sheetTitle">ものを追加</h3>
+  <p class="hint">ひらがなで入力すると候補が出ます</p>
+  <div class="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+    <input id="searchInput" type="text" placeholder="例：ぎゅうにゅう" autocomplete="off" />
+  </div>
+  <div class="suggest" id="suggest"></div>
+</div>
+
+<div class="scrim" id="scrim2"></div>
+<div class="sheet" id="storeSheet">
+  <div class="grip"></div>
+  <div id="storeEditBody" style="overflow-y:auto;"></div>
+</div>
+
+<div class="scrim" id="scrim3"></div>
+<div class="sheet" id="dictSheet">
+  <div class="grip"></div>
+  <div id="dictEditBody" style="overflow-y:auto;"></div>
+</div>
+
+<div class="scrim" id="scrim4"></div>
+<div class="sheet" id="shareSheet">
+  <div class="grip"></div>
+  <div id="shareBody" style="overflow-y:auto;"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+/* ===== アイコン ===== */
+const ICONS = {
+  milk:'<path d="M8 2h8M9 2l-.5 4 -1 2v12a2 2 0 0 0 2 2h5a2 2 0 0 0 2-2V8l-1-2L15 2"/><line x1="7.5" y1="11" x2="16.5" y2="11"/>',
+  egg:'<path d="M12 3c-3.5 0-6 5-6 9a6 6 0 0 0 12 0c0-4-2.5-9-6-9z"/>',
+  vegetable:'<path d="M12 8c4-4 8-3 8-3s1 4-3 8-8 8-8 8-1-9 3-13z"/><path d="M5 19c2-2 4-4 7-7"/>',
+  meat:'<path d="M14 4a6 6 0 0 0-6 6c0 1-1 2-2 3s-2 3 0 5 4 1 5 0 2-2 3-2a6 6 0 0 0 0-12z"/><circle cx="8" cy="16" r="1.3"/>',
+  fish:'<path d="M3 12c3-5 9-6 13-4 2 1 4 3 5 4-1 1-3 3-5 4-4 2-10 1-13-4z"/><path d="M3 12l-1-3M3 12l-1 3"/><circle cx="16" cy="11" r="1"/>',
+  bread:'<path d="M5 11a4 4 0 0 1 4-4h6a4 4 0 0 1 0 8H9a4 4 0 0 1-4-4z"/><path d="M9 7v8M13 7v8"/>',
+  drink:'<path d="M7 4h10l-1 16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1z"/><line x1="7.4" y1="9" x2="16.6" y2="9"/>',
+  rice:'<path d="M5 14a7 7 0 0 1 14 0z"/><path d="M3 18h18"/><path d="M9 14c0-2 1-4 3-6 2 2 3 4 3 6"/>',
+  snack:'<rect x="6" y="4" width="12" height="16" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+  fruit:'<circle cx="12" cy="14" r="6"/><path d="M12 8c0-2 1-4 3-5"/>',
+  detergent:'<path d="M9 8h6v11a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z"/><path d="M10 8V5h4v3"/><path d="M14 5l2-2"/>',
+  tissue:'<rect x="4" y="9" width="16" height="11" rx="2"/><path d="M9 9c0-2 1.5-3 3-3s3 1 3 3"/>',
+  soap:'<rect x="6" y="10" width="12" height="10" rx="2"/><path d="M9 10V7a3 3 0 0 1 6 0v3"/>',
+  medicine:'<rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(45 12 12)"/><line x1="9" y1="9" x2="15" y2="15"/>',
+  toothbrush:'<path d="M4 20l9-9"/><rect x="11" y="3" width="7" height="4" rx="1.5" transform="rotate(45 14.5 5)"/>',
+  tool:'<path d="M14 6a4 4 0 0 0-5 5l-6 6 3 3 6-6a4 4 0 0 0 5-5l-3 3-3-3z"/>',
+  plant:'<path d="M12 20v-7"/><path d="M12 13c-3 0-5-2-5-5 3 0 5 2 5 5z"/><path d="M12 13c3 0 5-2 5-5-3 0-5 2-5 5z"/><path d="M7 20h10"/>',
+  bed:'<path d="M3 18v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6"/><path d="M3 14h18"/><path d="M3 18v2M21 18v2"/>',
+  box:'<path d="M3 8l9-4 9 4-9 4z"/><path d="M3 8v8l9 4 9-4V8"/><path d="M12 12v8"/>',
+  light:'<path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10c.6.6 1 1.4 1 2h6c0-.6.4-1.4 1-2a6 6 0 0 0-4-10z"/>',
+  pen:'<path d="M5 19l-1 1 1-4L16 5l3 3L8 19z"/>',
+  cart:'<circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M2 3h3l2.5 13h10l2-9H6"/>',
+  grid:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+  house:'<path d="M4 11l8-6 8 6"/><path d="M6 9.5V19h12V9.5"/><path d="M10 19v-5h4v5"/>',
+  trash:'<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/>',
+  /* --- 食品 --- */
+  carrot:'<path d="M5 19c-1-1-1-3 0-4l8-8 4 4-8 8c-1 1-3 1-4 0z"/><path d="M14 6l2-3M16 8l3-2"/>',
+  broccoli:'<path d="M8 10a3 3 0 1 1 1-5 3 3 0 0 1 6 0 3 3 0 0 1 1 5z"/><path d="M9 10v5a3 3 0 0 0 6 0v-5"/>',
+  corn:'<path d="M12 3c3 0 5 3 5 8s-2 9-5 9-5-4-5-9 2-8 5-8z"/><path d="M12 5v14M9 8l6 1M9 12l6 1M9 16l6 1"/>',
+  mushroom:'<path d="M5 11a7 6 0 0 1 14 0z"/><path d="M10 11v6a2 2 0 0 0 4 0v-6"/>',
+  pepper:'<path d="M8 8c-2 2-2 7 0 9 3 3 8 1 9-3 1-5-2-8-5-7"/><path d="M12 7c0-2 2-3 4-2"/>',
+  grapes:'<circle cx="9" cy="13" r="2"/><circle cx="13" cy="13" r="2"/><circle cx="11" cy="16.5" r="2"/><path d="M11 11V6c0-1 1-2 3-2"/>',
+  lemon:'<ellipse cx="12" cy="12" rx="8" ry="5" transform="rotate(-25 12 12)"/><path d="M7 9l1 1"/>',
+  banana:'<path d="M5 8c1 6 6 10 12 9 1 0 2-1 1-2-5 0-9-3-10-8 0-1-3-1-3 1z"/>',
+  coffee:'<path d="M5 8h11v5a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 9h2a2 2 0 0 1 0 4h-2"/><path d="M8 3v2M11 3v2"/>',
+  beer:'<path d="M6 6h9v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z"/><path d="M15 8h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><path d="M9 9v8"/>',
+  wine:'<path d="M8 3h8l-1 6a3 3 0 0 1-6 0z"/><path d="M12 12v6M9 21h6"/>',
+  bottle:'<path d="M10 3h4v3l1 2v11a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2V8l1-2z"/>',
+  can:'<rect x="7" y="4" width="10" height="16" rx="2"/><path d="M7 8h10"/>',
+  icecream:'<path d="M8 9a4 4 0 0 1 8 0z"/><path d="M8 9l4 11 4-11"/>',
+  cake:'<path d="M5 14a7 3 0 0 1 14 0v5H5z"/><path d="M5 16h14M12 5v4M12 5c-1 1-1 2 0 2s1-1 0-2z"/>',
+  cookie:'<circle cx="12" cy="12" r="8"/><circle cx="10" cy="10" r="1"/><circle cx="14" cy="13" r="1"/><circle cx="11" cy="15" r="1"/>',
+  candy:'<circle cx="12" cy="12" r="4"/><path d="M8 12L4 9v6zM16 12l4-3v6z"/>',
+  chocolate:'<rect x="6" y="5" width="12" height="14" rx="1"/><path d="M6 12h12M12 5v14"/>',
+  honey:'<path d="M7 4h10l-1 4H8z"/><path d="M8 8v9a4 4 0 0 0 8 0V8"/>',
+  onigiri:'<path d="M12 5l7 13H5z"/><path d="M9.5 13h5"/>',
+  noodle:'<path d="M5 10h14l-1 7a3 3 0 0 1-3 2H9a3 3 0 0 1-3-2z"/><path d="M9 10c0-3 2-5 3-5M13 10c0-3-1-4 0-6"/>',
+  tofu:'<rect x="6" y="8" width="12" height="8" rx="1"/><path d="M6 12h12"/>',
+  sausage:'<rect x="4" y="9" width="16" height="6" rx="3"/><path d="M8 12h.01M12 12h.01M16 12h.01"/>',
+  shrimp:'<path d="M18 7c-4-2-9 0-11 4-1 3 1 6 4 6 5 0 9-4 9-9"/><path d="M18 7c1-1 2-1 3 0"/>',
+  cereal:'<path d="M6 9l1-4h6l1 4"/><path d="M5 9h11v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/>',
+  flour:'<path d="M7 7h10v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"/><path d="M9 7V5h6v2"/>',
+  pasta:'<path d="M6 20l2-12M10 20l1-12M14 20V8M18 20l-1-12"/><path d="M5 8h14"/>',
+  saltshaker:'<path d="M8 9h8v9a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/><path d="M11 5h.01M13 5h.01"/>',
+  jam:'<path d="M8 8h8v9a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2z"/><path d="M9 8V6h6v2M10 12h4"/>',
+  /* --- 日用品・ドラッグ --- */
+  pump:'<path d="M9 9h5v9a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2z"/><path d="M10 9V6h3v3M13 6h3l-1 2"/>',
+  toothpaste:'<path d="M5 18l9-9 2 2-9 9z"/><path d="M14 9l3-3a1 1 0 0 1 2 2l-3 3z"/>',
+  mask:'<path d="M4 9c2-1 6 0 8 0s6-1 8 0v5c0 3-4 5-8 5s-8-2-8-5z"/><path d="M4 11H2M20 11h2"/>',
+  bandage:'<rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(45 12 12)"/><path d="M11 11h.01M13 13h.01M13 11h.01M11 13h.01"/>',
+  lotion:'<rect x="8" y="8" width="8" height="11" rx="2"/><path d="M10 8V5h4v3"/>',
+  diaper:'<path d="M4 8h16v3a8 8 0 0 1-16 0z"/><path d="M4 8c3 1 13 1 16 0"/>',
+  /* --- キッチン・100均 --- */
+  plate:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/>',
+  bowl:'<path d="M3 11h18a9 8 0 0 1-18 0z"/><path d="M3 11c0-1 4-2 9-2s9 1 9 2"/>',
+  cup:'<path d="M6 4h12l-1 16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1z"/>',
+  spoon:'<ellipse cx="12" cy="6" rx="3" ry="4"/><path d="M12 10v10"/>',
+  fork:'<path d="M9 3v6a3 3 0 0 0 6 0V3"/><path d="M12 9v12"/>',
+  knife:'<path d="M5 19L19 5c1 2 0 6-3 9l-8 8z"/>',
+  chopsticks:'<path d="M4 20L18 4M8 20L20 6"/>',
+  pot:'<path d="M5 9h14v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M3 9h18M6 7h1M17 7h1"/>',
+  pan:'<circle cx="10" cy="13" r="6"/><path d="M16 13h6"/>',
+  scissors:'<circle cx="7" cy="7" r="2.5"/><circle cx="7" cy="17" r="2.5"/><path d="M9 9l10 9M9 15L19 6"/>',
+  tape:'<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/>',
+  clip:'<path d="M8 6v9a4 4 0 0 0 8 0V7a2 2 0 0 0-4 0v8"/>',
+  shopbag:'<path d="M6 8h12l-1 11a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1z"/><path d="M9 8a3 3 0 0 1 6 0"/>',
+  wrap:'<rect x="4" y="6" width="16" height="12" rx="1"/><path d="M4 10h16M8 6v12"/>',
+  candle:'<rect x="9" y="9" width="6" height="11" rx="1"/><path d="M12 9V6"/><path d="M12 3c1 1 1 2 0 3-1-1-1-2 0-3z"/>',
+  /* --- DIY・ホームセンター --- */
+  hammer:'<path d="M13 7l3-3 4 4-3 3z"/><path d="M15 9l-9 9-2-2 9-9"/>',
+  screw:'<path d="M12 3l3 3v3l-3 12-3-12V6z"/><path d="M9 8h6M9 11h6M9 14h6"/>',
+  nail:'<path d="M9 4h6l-2 3v13l-1 1-1-1V7z"/>',
+  paint:'<rect x="6" y="4" width="12" height="6" rx="1"/><path d="M8 10v3a2 2 0 0 0 2 2h2v6M12 15v6"/>',
+  brush:'<path d="M7 14l5-5 3 3-5 5z"/><path d="M15 9l3-3a2 2 0 0 0-3-3l-3 3"/><path d="M7 14l-2 5 5-2"/>',
+  ladder:'<path d="M7 3v18M17 3v18M7 8h10M7 12h10M7 16h10"/>',
+  /* --- 家具・ニトリ --- */
+  pillow:'<rect x="4" y="7" width="16" height="10" rx="4"/><path d="M7 9c-1 2-1 4 0 6M17 9c1 2 1 4 0 6"/>',
+  blanket:'<path d="M4 8h16v8a3 3 0 0 1-3 3H4z"/><path d="M4 8c2-2 14-2 16 0M17 19v-3h3"/>',
+  chair:'<path d="M8 4v9M16 4v9M8 13h8M9 13l-1 7M15 13l1 7M8 9h8"/>',
+  sofa:'<path d="M4 11V9a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/><path d="M3 11a2 2 0 0 1 2 2v4h14v-4a2 2 0 0 1 2-2"/><path d="M6 17v2M18 17v2"/>',
+  lamp:'<path d="M8 3h8l2 6H6z"/><path d="M12 9v9M8 21h8"/>',
+  clock:'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',
+  mirror:'<rect x="7" y="3" width="10" height="14" rx="5"/><path d="M9 20h6M12 17v3"/>',
+  hanger:'<path d="M11 7a1.5 1.5 0 1 1 2 1.3L12 9"/><path d="M12 9L4 16h16z"/>',
+  towel:'<rect x="6" y="4" width="12" height="16" rx="2"/><path d="M6 16h12"/>',
+  basket:'<path d="M5 9h14l-1 9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M9 9l2-4M15 9l-2-4"/>',
+  shelf:'<rect x="5" y="4" width="14" height="16" rx="1"/><path d="M5 10h14M5 15h14"/>',
+  /* --- 衣類 --- */
+  shirt:'<path d="M8 4l4 2 4-2 4 4-3 2v10H7V10L4 8z"/>',
+  pants:'<path d="M7 3h10l-1 18h-4l-1-9-1 9H8z"/>',
+  socks:'<path d="M9 3h5v7l3 3a3 3 0 0 1-4 4l-5-4a2 2 0 0 1 0-3l1-1V3z"/>',
+  shoes:'<path d="M3 16h10l4 2h4v2H3z"/><path d="M3 16v-3l4-1 2 2 4 1"/>',
+  hat:'<path d="M4 17h16"/><path d="M6 17c0-6 2-10 6-10s6 4 6 10"/>',
+  /* --- その他 --- */
+  star:'<path d="M12 3l2.5 6 6.5.5-5 4 1.5 6.5L12 16l-5.5 4 1.5-6.5-5-4 6.5-.5z"/>',
+  heart:'<path d="M12 20S4 14 4 8.5A4 4 0 0 1 12 6a4 4 0 0 1 8 2.5C20 14 12 20 12 20z"/>',
+  gift:'<rect x="4" y="9" width="16" height="11" rx="1"/><path d="M4 13h16M12 9v11"/><path d="M12 9C9 9 8 4 12 6c4-2 3 3 0 3z"/>',
+  baby:'<circle cx="12" cy="8" r="3"/><path d="M6 20c0-4 3-6 6-6s6 2 6 6"/>',
+  paw:'<circle cx="7" cy="12" r="1.6"/><circle cx="11" cy="9" r="1.6"/><circle cx="15" cy="9" r="1.6"/><circle cx="17.5" cy="13" r="1.6"/><path d="M8.5 16c0-2 1.7-3 3.5-3s3.5 1 3.5 3-1.7 3-3.5 3-3.5-1-3.5-3z"/>',
+  book:'<path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 0-2 2z"/><path d="M5 18a2 2 0 0 1 2-2h11"/>',
+  default:'<circle cx="12" cy="12" r="2.5"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/>'
+};
+function svgIcon(key){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+(ICONS[key]||ICONS.default)+'</svg>'; }
+const plusSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+const NEUTRAL={accent:'#6E6E68',soft:'#ECEAE6'};
+
+/* ===== カラーパレット（お店のテーマ色） ===== */
+const PALETTE=[
+  {accent:'#7FB893',soft:'#E9F3EC'}, {accent:'#7CC0A8',soft:'#E7F4EF'},
+  {accent:'#86BEB9',soft:'#E6F2F0'}, {accent:'#9DBE7F',soft:'#EFF4E7'},
+  {accent:'#A9C18A',soft:'#EFF4E6'}, {accent:'#7FA8D6',soft:'#E8F0F9'},
+  {accent:'#7BB1C7',soft:'#E6F1F5'}, {accent:'#8FB0C9',soft:'#EAF1F6'},
+  {accent:'#8B9DC9',soft:'#ECEFF7'}, {accent:'#B6A4D4',soft:'#F0ECF7'},
+  {accent:'#C7A2CC',soft:'#F4ECF5'}, {accent:'#D99CC0',soft:'#F7ECF3'},
+  {accent:'#D88FA0',soft:'#F8ECF0'}, {accent:'#E29AA4',soft:'#F8ECEE'},
+  {accent:'#E69B8C',soft:'#FAEDE9'}, {accent:'#E0B27C',soft:'#F8F0E4'},
+  {accent:'#E3C07B',soft:'#F9F2E2'}, {accent:'#D6AE84',soft:'#F5EEE2'},
+  {accent:'#C9A0A0',soft:'#F4ECEC'}, {accent:'#BFB07C',soft:'#F4F1E5'},
+  {accent:'#A89B8C',soft:'#F0EDE9'}, {accent:'#9DB8B0',soft:'#EDF3F1'},
+  {accent:'#8C9AA3',soft:'#EDEFF1'}, {accent:'#B0938A',soft:'#F1EAE8'},
+];
+
+/* ===== お店データ（初期値。保存後は state.stores が正） ===== */
+const DEFAULT_STORES = [
+  { id:'super',  name:'スーパー',     icon:'cart',     accent:'#7FB893', soft:'#E9F3EC',
+    cats:['野菜','肉・魚','乳製品','パン','飲料','調味料','冷凍食品','お菓子'] },
+  { id:'drug',   name:'ドラッグストア', icon:'medicine', accent:'#7FA8D6', soft:'#E8F0F9', cats:[] },
+  { id:'hyaku',  name:'100均',       icon:'box',      accent:'#E29AA4', soft:'#F8ECEE', cats:[] },
+  { id:'home',   name:'ホームセンター', icon:'tool',     accent:'#D6AE84', soft:'#F5EEE2', cats:[] },
+  { id:'nitori', name:'ニトリ',       icon:'bed',      accent:'#86BEB9', soft:'#E6F2F0', cats:[] },
+];
+/* 選択肢から外す：用途アイコン以外＋小さいと見分けづらいもの（定義は残すので既存表示は壊れない） */
+const ICON_HIDDEN=new Set(['default','grid','trash',
+  'pepper','broccoli','honey','jam','saltshaker','flour','cereal','pasta',
+  'screw','nail','tape','clip','wrap','candle','chopsticks','blanket','pump']);
+const ICON_KEYS=Object.keys(ICONS).filter(k=>!ICON_HIDDEN.has(k));
+/* 今使っているアイコンが除外対象でも選べるよう、先頭に足して返す */
+function iconChoices(cur){ return (cur && cur!=='default' && !ICON_KEYS.includes(cur)) ? [cur,...ICON_KEYS] : ICON_KEYS; }
+
+/* ===== 辞書（DB）初期値。保存後は state.dict が正 ===== */
+const DEFAULT_DICT = [
+  {name:'牛乳',reading:'ぎゅうにゅう',store:'super',category:'乳製品',icon:'milk'},
+  {name:'卵',reading:'たまご',store:'super',category:'乳製品',icon:'egg'},
+  {name:'ヨーグルト',reading:'よーぐると',store:'super',category:'乳製品',icon:'milk'},
+  {name:'バター',reading:'ばたー',store:'super',category:'乳製品',icon:'milk'},
+  {name:'チーズ',reading:'ちーず',store:'super',category:'乳製品',icon:'milk'},
+  {name:'キャベツ',reading:'きゃべつ',store:'super',category:'野菜',icon:'vegetable'},
+  {name:'にんじん',reading:'にんじん',store:'super',category:'野菜',icon:'vegetable'},
+  {name:'たまねぎ',reading:'たまねぎ',store:'super',category:'野菜',icon:'vegetable'},
+  {name:'じゃがいも',reading:'じゃがいも',store:'super',category:'野菜',icon:'vegetable'},
+  {name:'トマト',reading:'とまと',store:'super',category:'野菜',icon:'fruit'},
+  {name:'きゅうり',reading:'きゅうり',store:'super',category:'野菜',icon:'vegetable'},
+  {name:'レタス',reading:'れたす',store:'super',category:'野菜',icon:'vegetable'},
+  {name:'バナナ',reading:'ばなな',store:'super',category:'野菜',icon:'fruit'},
+  {name:'りんご',reading:'りんご',store:'super',category:'野菜',icon:'fruit'},
+  {name:'鶏肉',reading:'とりにく',store:'super',category:'肉・魚',icon:'meat'},
+  {name:'豚肉',reading:'ぶたにく',store:'super',category:'肉・魚',icon:'meat'},
+  {name:'牛肉',reading:'ぎゅうにく',store:'super',category:'肉・魚',icon:'meat'},
+  {name:'ひき肉',reading:'ひきにく',store:'super',category:'肉・魚',icon:'meat'},
+  {name:'鮭',reading:'さけ',store:'super',category:'肉・魚',icon:'fish'},
+  {name:'食パン',reading:'しょくぱん',store:'super',category:'パン',icon:'bread'},
+  {name:'お米',reading:'おこめ',store:'super',category:'パン',icon:'rice'},
+  {name:'お茶',reading:'おちゃ',store:'super',category:'飲料',icon:'drink'},
+  {name:'水',reading:'みず',store:'super',category:'飲料',icon:'drink'},
+  {name:'ジュース',reading:'じゅーす',store:'super',category:'飲料',icon:'drink'},
+  {name:'醤油',reading:'しょうゆ',store:'super',category:'調味料',icon:'drink'},
+  {name:'味噌',reading:'みそ',store:'super',category:'調味料',icon:'rice'},
+  {name:'砂糖',reading:'さとう',store:'super',category:'調味料',icon:'rice'},
+  {name:'塩',reading:'しお',store:'super',category:'調味料',icon:'rice'},
+  {name:'油',reading:'あぶら',store:'super',category:'調味料',icon:'drink'},
+  {name:'冷凍うどん',reading:'れいとううどん',store:'super',category:'冷凍食品',icon:'snack'},
+  {name:'アイス',reading:'あいす',store:'super',category:'冷凍食品',icon:'snack'},
+  {name:'ポテトチップス',reading:'ぽてとちっぷす',store:'super',category:'お菓子',icon:'snack'},
+  {name:'チョコ',reading:'ちょこ',store:'super',category:'お菓子',icon:'snack'},
+  {name:'シャンプー',reading:'しゃんぷー',store:'drug',category:'',icon:'soap'},
+  {name:'リンス',reading:'りんす',store:'drug',category:'',icon:'soap'},
+  {name:'歯ブラシ',reading:'はぶらし',store:'drug',category:'',icon:'toothbrush'},
+  {name:'歯磨き粉',reading:'はみがきこ',store:'drug',category:'',icon:'soap'},
+  {name:'ティッシュ',reading:'てぃっしゅ',store:'drug',category:'',icon:'tissue'},
+  {name:'トイレットペーパー',reading:'といれっとぺーぱー',store:'drug',category:'',icon:'tissue'},
+  {name:'洗剤',reading:'せんざい',store:'drug',category:'',icon:'detergent'},
+  {name:'柔軟剤',reading:'じゅうなんざい',store:'drug',category:'',icon:'detergent'},
+  {name:'ハンドソープ',reading:'はんどそーぷ',store:'drug',category:'',icon:'soap'},
+  {name:'絆創膏',reading:'ばんそうこう',store:'drug',category:'',icon:'medicine'},
+  {name:'風邪薬',reading:'かぜぐすり',store:'drug',category:'',icon:'medicine'},
+  {name:'化粧水',reading:'けしょうすい',store:'drug',category:'',icon:'soap'},
+  {name:'保存容器',reading:'ほぞんようき',store:'hyaku',category:'',icon:'box'},
+  {name:'スポンジ',reading:'すぽんじ',store:'hyaku',category:'',icon:'soap'},
+  {name:'収納ケース',reading:'しゅうのうけーす',store:'hyaku',category:'',icon:'box'},
+  {name:'ボールペン',reading:'ぼーるぺん',store:'hyaku',category:'',icon:'pen'},
+  {name:'電池',reading:'でんち',store:'hyaku',category:'',icon:'light'},
+  {name:'ドライバー',reading:'どらいばー',store:'home',category:'',icon:'tool'},
+  {name:'土',reading:'つち',store:'home',category:'',icon:'plant'},
+  {name:'植木鉢',reading:'うえきばち',store:'home',category:'',icon:'plant'},
+  {name:'電球',reading:'でんきゅう',store:'home',category:'',icon:'light'},
+  {name:'枕',reading:'まくら',store:'nitori',category:'',icon:'bed'},
+  {name:'布団カバー',reading:'ふとんかばー',store:'nitori',category:'',icon:'bed'},
+  {name:'収納ボックス',reading:'しゅうのうぼっくす',store:'nitori',category:'',icon:'box'},
+];
+function dictFind(name){ return DICT.find(d=>d.name===name); }
+/* 並び替え用：カテゴリの順位（店の定義順→未定義→なしの順で後ろへ）と、名前から読みを引く */
+function catRank(store,cat){ if(!cat) return 9999; const i=store.cats.indexOf(cat); return i<0?9998:i; }
+function readingOf(name){ const d=dictFind(name); return toHira((d&&d.reading)||name); }
+function softOf(hex){ if(!hex) return null; const h=hex.replace('#',''); const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16); return 'rgba('+r+','+g+','+b+',.16)'; }
+
+/* ===== 状態 ===== */
+const SKEY='kaimono-memo-v6';
+let _seq=0;
+function uid(){ return 'i'+(_seq++)+'-'+Math.floor(performance.now()).toString(36); }
+let state=load();
+let STORES=state.stores;
+let DICT=state.dict;
+function load(){
+  try{ const s=JSON.parse(localStorage.getItem(SKEY)); if(s) return s; }catch(e){}
+  return {
+    stores: JSON.parse(JSON.stringify(DEFAULT_STORES)),
+    dict: DEFAULT_DICT.map(d=>({id:uid(),color:'',...d})),
+    items:{
+      super:[
+        {id:uid(),name:'牛乳',category:'乳製品',icon:'milk',qty:1,done:false},
+        {id:uid(),name:'卵',category:'乳製品',icon:'egg',qty:1,done:false},
+        {id:uid(),name:'キャベツ',category:'野菜',icon:'vegetable',qty:1,done:true},
+        {id:uid(),name:'鶏肉',category:'肉・魚',icon:'meat',qty:2,done:false},
+        {id:uid(),name:'食パン',category:'パン',icon:'bread',qty:1,done:false},
+      ],
+      drug:[ {id:uid(),name:'ティッシュ',category:'',icon:'tissue',qty:1,done:false} ],
+      hyaku:[], home:[], nitori:[],
+    },
+    stock:[
+      {id:uid(),name:'牛乳',icon:'milk',store:'super',qty:2},
+      {id:uid(),name:'卵',icon:'egg',store:'super',qty:0},
+      {id:uid(),name:'洗剤',icon:'detergent',store:'drug',qty:1},
+    ],
+  };
+}
+function save(){ localStorage.setItem(SKEY, JSON.stringify(state)); if(share.roomCode && !applyingRemote) schedulePush(); }
+
+const $=s=>document.querySelector(s);
+function storeById(id){ return STORES.find(s=>s.id===id); }
+function esc(s){ return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+/* ===== タブ ===== */
+let tab='all'; // 'all' | store.id | 'stock'
+function renderTabs(){
+  const wrap=$('#tabs'); wrap.innerHTML='';
+  const list=[{id:'all',name:'ホーム',icon:'grid',accent:NEUTRAL.accent},
+    ...STORES.map(s=>({id:s.id,name:s.name,icon:s.icon,accent:s.accent}))];
+  list.forEach(t=>{
+    const el=document.createElement('button');
+    el.className='tab'+(t.id===tab?' active':'');
+    if(t.id===tab) el.style.background=t.accent;
+    const mark = t.id==='all' ? svgIcon('grid')
+      : '<span class="tab-dot" style="background:'+(t.id===tab?'#fff':t.accent)+'"></span>';
+    el.innerHTML=mark+t.name;
+    el.onclick=()=>{ tab=t.id; render(); };
+    wrap.appendChild(el);
+  });
+}
+
+/* ===== メイン描画 ===== */
+function render(){
+  renderTabs();
+  $('#stockBtn').classList.toggle('active', tab==='stock');
+  $('#settingsBtn').classList.toggle('active', tab==='settings');
+  $('#shareBtn').classList.toggle('active', !!share.roomCode);
+  const v=$('#view'); v.innerHTML='';
+  if(tab==='settings'){ v.style.setProperty('--accent',NEUTRAL.accent); v.style.setProperty('--accent-soft','#EDEBE7'); renderSettings(v); return; }
+  if(tab==='stock'){ v.style.setProperty('--accent',NEUTRAL.accent); v.style.setProperty('--accent-soft','#EDEBE7'); renderStock(v); return; }
+  if(tab!=='all' && !storeById(tab)) tab='all';
+  const stores = (tab==='all') ? STORES : [storeById(tab)];
+  stores.forEach(store=> v.appendChild(storeSection(store)));
+}
+
+/* ===== 設定・管理ページ ===== */
+function renderSettings(v){
+  const h=document.createElement('div'); h.className='set-h'; h.textContent='お店の管理'; v.appendChild(h);
+  const list=document.createElement('div'); list.className='set-list';
+  STORES.forEach(s=>{
+    const cnt=(s.cats&&s.cats.length)?('カテゴリ '+s.cats.length+'個'):'カテゴリなし';
+    const row=document.createElement('div'); row.className='set-row';
+    row.innerHTML='<span class="set-dot" style="background:'+s.accent+'"></span>'+
+      '<div class="nm">'+esc(s.name)+'<small>'+cnt+'</small></div>'+
+      '<button class="mini-btn ed">編集</button><button class="mini-btn del">削除</button>';
+    row.querySelector('.ed').onclick=()=>openStoreEditor(s);
+    row.querySelector('.del').onclick=()=>deleteStore(s);
+    list.appendChild(row);
+  });
+  v.appendChild(list);
+  const add=document.createElement('button'); add.className='add-row'; add.innerHTML=plusSvg+'お店を追加';
+  add.onclick=()=>openStoreEditor(null);
+  v.appendChild(add);
+
+  /* --- 商品（辞書）の管理 --- */
+  const dh=document.createElement('div'); dh.className='set-h'; dh.textContent='商品（辞書）の管理'; dh.style.marginTop='22px';
+  v.appendChild(dh);
+  const sb=document.createElement('div'); sb.className='search'; sb.style.marginBottom='12px';
+  sb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>'+
+    '<input id="dictSearch" type="text" placeholder="名前・ふりがなで探す" autocomplete="off" />';
+  v.appendChild(sb);
+  const di=sb.querySelector('#dictSearch'); di.value=dictFilter;
+  di.addEventListener('input',e=>{ dictFilter=e.target.value; renderDictList(); });
+  const dl=document.createElement('div'); dl.id='dictList'; v.appendChild(dl);
+  renderDictList(dl);
+  const dadd=document.createElement('button'); dadd.className='add-row'; dadd.innerHTML=plusSvg+'商品を追加';
+  dadd.onclick=()=>openDictEditor(null);
+  v.appendChild(dadd);
+}
+
+/* ===== 辞書（商品）リスト ===== */
+let dictFilter='';
+let dictOpen=new Set();   // 展開中のお店id（既定はたたんだ状態）
+function renderDictList(box){
+  box=box||$('#dictList'); if(!box) return;
+  box.innerHTML='';
+  const f=toHira(dictFilter), typed=dictFilter.trim();
+  const filtering=!!typed;
+  let shown=0;
+  STORES.forEach(store=>{
+    let items=DICT.filter(d=>d.store===store.id);
+    if(f) items=items.filter(d=> toHira(d.reading).includes(f) || toHira(d.name).includes(f) || (typed&&d.name.includes(typed)));
+    if(!items.length) return;
+    items.sort((a,b)=> (catRank(store,a.category)-catRank(store,b.category)) || readingOf(a.name).localeCompare(readingOf(b.name),'ja'));
+    shown++;
+    const open = filtering || dictOpen.has(store.id);
+    const grp=document.createElement('div'); grp.className='dict-group';
+    const gh=document.createElement('button'); gh.className='dict-gh'+(open?' open':'');
+    gh.innerHTML='<span class="dot" style="background:'+store.accent+'"></span>'+
+      '<span class="gname">'+esc(store.name)+'</span><span class="cnt">'+items.length+'</span>'+
+      '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+    if(!filtering) gh.onclick=()=>{ dictOpen.has(store.id)?dictOpen.delete(store.id):dictOpen.add(store.id); renderDictList(); };
+    grp.appendChild(gh);
+    if(open){
+      const g=document.createElement('div'); g.className='dict-grid';
+      g.style.setProperty('--accent-soft',store.soft);
+      items.forEach(d=>{
+        const card=document.createElement('div'); card.className='dict-card';
+        card.innerHTML='<span class="ic" style="background:'+store.soft+';color:'+store.accent+'">'+svgIcon(d.icon)+'</span>'+
+          '<div class="tx"><div class="nm">'+esc(d.name)+'</div>'+(d.category?'<div class="ct">'+esc(d.category)+'</div>':'')+'</div>'+
+          '<button class="x" title="削除">'+svgIcon('trash')+'</button>';
+        card.onclick=()=>openDictEditor(d);
+        card.querySelector('.x').onclick=e=>{ e.stopPropagation(); deleteDict(d); };
+        g.appendChild(card);
+      });
+      if(!filtering){
+        const addc=document.createElement('button'); addc.className='dict-add'; addc.innerHTML=plusSvg+'追加';
+        addc.onclick=()=>openDictEditor(null,store.id);
+        g.appendChild(addc);
+      }
+      grp.appendChild(g);
+    }
+    box.appendChild(grp);
+  });
+  if(!shown){
+    const e=document.createElement('div'); e.className='page-empty'; e.style.padding='34px 20px';
+    e.innerHTML='<p class="sub">該当する商品がありません</p>';
+    box.appendChild(e);
+  }
+}
+
+function deleteStore(s){
+  if(STORES.length<=1){ alert('お店は最低1つ必要です。'); return; }
+  if(!confirm('「'+s.name+'」を削除しますか？\nこのお店の買い物リストも一緒に消えます。')) return;
+  const i=STORES.findIndex(x=>x.id===s.id); if(i>=0) STORES.splice(i,1);
+  delete state.items[s.id];
+  if(tab===s.id) tab='all';
+  save(); render();
+}
+
+/* ===== お店エディタ ===== */
+const storeSheet=$('#storeSheet'), scrim2=$('#scrim2');
+scrim2.onclick=closeStoreEditor;
+let draft=null, draftNew=false;
+
+function openStoreEditor(store){
+  draftNew=!store;
+  draft = store ? JSON.parse(JSON.stringify(store))
+    : { id:'st-'+(_seq++)+'-'+Math.floor(performance.now()).toString(36), name:'', icon:'cart', accent:PALETTE[0].accent, soft:PALETTE[0].soft, cats:[] };
+  renderStoreEditor();
+  scrim2.classList.add('show'); storeSheet.classList.add('show');
+}
+function closeStoreEditor(){ scrim2.classList.remove('show'); storeSheet.classList.remove('show'); }
+function syncDraft(){
+  const n=$('#se-name'); if(n) draft.name=n.value;
+  draft.cats=Array.from(storeSheet.querySelectorAll('.se-cat')).map(i=>i.value);
+}
+function renderStoreEditor(){
+  storeSheet.style.setProperty('--accent',draft.accent);
+  storeSheet.style.setProperty('--accent-soft',draft.soft);
+  let sw=''; PALETTE.forEach((p,i)=> sw+='<span class="sw'+(p.accent===draft.accent?' sel':'')+'" data-i="'+i+'" style="background:'+p.accent+'"></span>');
+  let ce=''; draft.cats.forEach((c,i)=> ce+='<div class="cat-edit"><input class="se-cat" data-i="'+i+'" value="'+esc(c).replace(/"/g,'&quot;')+'" placeholder="カテゴリ名" /><button class="x" data-i="'+i+'">'+svgIcon('trash')+'</button></div>');
+  $('#storeEditBody').innerHTML=
+    '<h3>'+(draftNew?'お店を追加':'お店を編集')+'</h3>'+
+    '<div class="ed-label">お店の名前</div>'+
+    '<input id="se-name" class="ed-input" value="'+esc(draft.name).replace(/"/g,'&quot;')+'" placeholder="例：コストコ" />'+
+    '<div class="ed-label">テーマカラー</div><div class="swatches">'+sw+'</div>'+
+    '<div class="ed-label">カテゴリ（分けないなら空でOK）</div>'+ce+
+    '<button class="add-row" id="se-addcat" style="margin-top:2px">'+plusSvg+'カテゴリを追加</button>'+
+    '<div class="ed-actions"><button class="ed-save" id="se-save">保存</button>'+(draftNew?'':'<button class="ed-del" id="se-del">削除</button>')+'</div>';
+  storeSheet.querySelectorAll('.sw').forEach(el=> el.onclick=()=>{ syncDraft(); const p=PALETTE[+el.dataset.i]; draft.accent=p.accent; draft.soft=p.soft; renderStoreEditor(); });
+  storeSheet.querySelectorAll('.cat-edit .x').forEach(el=> el.onclick=()=>{ syncDraft(); draft.cats.splice(+el.dataset.i,1); renderStoreEditor(); });
+  $('#se-addcat').onclick=()=>{ syncDraft(); draft.cats.push(''); renderStoreEditor(); };
+  $('#se-save').onclick=saveStore;
+  const del=$('#se-del'); if(del) del.onclick=()=>{ closeStoreEditor(); deleteStore(draft); };
+}
+function saveStore(){
+  syncDraft();
+  draft.name=(draft.name||'').trim();
+  draft.cats=draft.cats.map(c=>c.trim()).filter(c=>c);
+  if(!draft.name){ alert('お店の名前を入れてください。'); return; }
+  if(draftNew){ STORES.push(draft); if(!state.items[draft.id]) state.items[draft.id]=[]; }
+  else{ const i=STORES.findIndex(x=>x.id===draft.id); if(i>=0) STORES[i]=draft; }
+  save(); closeStoreEditor(); render();
+}
+
+/* ===== 商品（辞書）エディタ ===== */
+const dictSheet=$('#dictSheet'), scrim3=$('#scrim3');
+scrim3.onclick=closeDictEditor;
+let dictDraft=null, dictDraftNew=false;
+
+function openDictEditor(item,presetStore){
+  dictDraftNew=!item;
+  const curStore=presetStore||((storeById(tab))?tab:STORES[0].id);
+  dictDraft = item ? JSON.parse(JSON.stringify(item))
+    : { id:uid(), name:'', reading:'', store:curStore, category:'', icon:'default', color:'' };
+  renderDictEditor();
+  scrim3.classList.add('show'); dictSheet.classList.add('show');
+  if(dictDraftNew) setTimeout(()=>{ const n=$('#de-name'); if(n) n.focus(); },300);
+}
+function closeDictEditor(){ scrim3.classList.remove('show'); dictSheet.classList.remove('show'); }
+function syncDictDraft(){
+  const n=$('#de-name'); if(n) dictDraft.name=n.value;
+  const r=$('#de-reading'); if(r) dictDraft.reading=r.value;
+}
+function renderDictEditor(){
+  const store=storeById(dictDraft.store)||STORES[0];
+  dictSheet.style.setProperty('--accent',store.accent);
+  dictSheet.style.setProperty('--accent-soft',store.soft);
+  let stc=''; STORES.forEach(s=> stc+='<span class="cat-chip'+(s.id===dictDraft.store?' sel':'')+'" data-st="'+s.id+'">'+esc(s.name)+'</span>');
+  let cc='';
+  if(store.cats.length){
+    cc+='<span class="cat-chip'+(!dictDraft.category?' sel':'')+'" data-cat="">なし</span>';
+    store.cats.forEach(c=> cc+='<span class="cat-chip'+(c===dictDraft.category?' sel':'')+'" data-cat="'+esc(c).replace(/"/g,'&quot;')+'">'+esc(c)+'</span>');
+  }
+  let ig=''; iconChoices(dictDraft.icon).forEach(k=> ig+='<div class="ic-pick'+(k===dictDraft.icon?' sel':'')+'" data-k="'+k+'">'+svgIcon(k)+'</div>');
+  $('#dictEditBody').innerHTML=
+    '<h3>'+(dictDraftNew?'商品を追加':'商品を編集')+'</h3>'+
+    '<div class="ed-label">名前</div>'+
+    '<input id="de-name" class="ed-input" value="'+esc(dictDraft.name).replace(/"/g,'&quot;')+'" placeholder="例：牛乳" />'+
+    '<div class="ed-label">ふりがな（ひらがな・検索に使います）</div>'+
+    '<input id="de-reading" class="ed-input" value="'+esc(dictDraft.reading).replace(/"/g,'&quot;')+'" placeholder="例：ぎゅうにゅう" />'+
+    '<div class="ed-label">お店</div><div class="cat-pick">'+stc+'</div>'+
+    (store.cats.length?'<div class="ed-label">カテゴリ</div><div class="cat-pick">'+cc+'</div>':'')+
+    '<div class="ed-label">アイコン</div><div class="icon-grid">'+ig+'</div>'+
+    '<div class="ed-actions"><button class="ed-save" id="de-save">保存</button>'+(dictDraftNew?'':'<button class="ed-del" id="de-del">削除</button>')+'</div>';
+  dictSheet.querySelectorAll('[data-st]').forEach(el=> el.onclick=()=>{ syncDictDraft(); dictDraft.store=el.dataset.st; const ns=storeById(dictDraft.store); if(!ns.cats.includes(dictDraft.category)) dictDraft.category=''; renderDictEditor(); });
+  dictSheet.querySelectorAll('[data-cat]').forEach(el=> el.onclick=()=>{ syncDictDraft(); dictDraft.category=el.dataset.cat; renderDictEditor(); });
+  dictSheet.querySelectorAll('.ic-pick').forEach(el=> el.onclick=()=>{ syncDictDraft(); dictDraft.icon=el.dataset.k; renderDictEditor(); });
+  $('#de-save').onclick=saveDict;
+  const del=$('#de-del'); if(del) del.onclick=()=>{ closeDictEditor(); deleteDict(dictDraft); };
+}
+function saveDict(){
+  syncDictDraft();
+  dictDraft.name=(dictDraft.name||'').trim();
+  dictDraft.reading=(dictDraft.reading||'').trim();
+  if(!dictDraft.name){ alert('名前を入れてください。'); return; }
+  if(!dictDraft.reading) dictDraft.reading=toHira(dictDraft.name);
+  if(dictDraftNew){ DICT.push(dictDraft); }
+  else{ const i=DICT.findIndex(x=>x.id===dictDraft.id); if(i>=0) DICT[i]=dictDraft; }
+  save(); closeDictEditor(); render();
+}
+function deleteDict(item){
+  if(!confirm('「'+item.name+'」を辞書から削除しますか？\n（追加済みの買い物リストや在庫はそのまま残ります）')) return;
+  const i=DICT.findIndex(x=>x.id===item.id); if(i>=0) DICT.splice(i,1);
+  save(); render();
+}
+
+function storeSection(store){
+  const items=state.items[store.id]||[];
+  const remain=items.filter(i=>!i.done).length;
+  const done=items.filter(i=>i.done).length;
+  const sec=document.createElement('section'); sec.className='section';
+  sec.style.setProperty('--accent',store.accent);
+  sec.style.setProperty('--accent-soft',store.soft);
+
+  const head=document.createElement('div'); head.className='sec-head';
+  head.innerHTML='<span class="sec-dot" style="background:'+store.accent+'"></span><div class="sec-name">'+store.name+'</div>'+
+    (remain>0?'<span class="sec-remain">のこり '+remain+'</span>':(items.length>0?'<span class="sec-remain">完了</span>':''));
+  const addBtn=document.createElement('button'); addBtn.className='sec-add'; addBtn.innerHTML=plusSvg;
+  addBtn.onclick=()=>openSheet('list',store.id); head.appendChild(addBtn);
+  sec.appendChild(head);
+
+  if(items.length===0){
+    const e=document.createElement('div'); e.className='sec-empty';
+    e.innerHTML='<div class="pl">'+plusSvg+'</div>まだありません。タップで追加';
+    e.onclick=()=>openSheet('list',store.id); sec.appendChild(e);
+  }else if(store.cats.length>0){
+    const cats=store.cats.slice();
+    items.forEach(i=>{ const c=i.category||'その他'; if(!cats.includes(c)) cats.push(c); });
+    cats.forEach(cat=>{
+      const inCat=items.filter(i=>(i.category||'その他')===cat).sort((a,b)=> ((a.done?1:0)-(b.done?1:0)) || readingOf(a.name).localeCompare(readingOf(b.name),'ja'));
+      if(inCat.length===0) return;
+      const sh=document.createElement('div'); sh.className='sub-head'; sh.textContent=cat; sec.appendChild(sh);
+      const g=document.createElement('div'); g.className='grid';
+      inCat.forEach(it=> g.appendChild(tile(it,store.id))); sec.appendChild(g);
+    });
+  }else{
+    const g=document.createElement('div'); g.className='grid';
+    items.slice().sort((a,b)=> ((a.done?1:0)-(b.done?1:0)) || readingOf(a.name).localeCompare(readingOf(b.name),'ja')).forEach(it=> g.appendChild(tile(it,store.id)));
+    sec.appendChild(g);
+  }
+
+  if(done>0){
+    const btn=document.createElement('button'); btn.className='clear-done';
+    btn.innerHTML=svgIcon('house')+'買ったもの（'+done+'）を在庫へ';
+    btn.onclick=()=>clearBought(store.id); sec.appendChild(btn);
+  }
+  return sec;
+}
+
+function tile(it,storeId){
+  const el=document.createElement('div'); el.className='tile'+(it.done?' done':'');
+  if(it.color){ el.style.setProperty('--accent',it.color); el.style.setProperty('--accent-soft',softOf(it.color)); }
+  el.innerHTML='<div class="ic">'+svgIcon(it.icon)+'</div><div class="nm">'+esc(it.name)+'</div>'+
+    (it.qty>1?'<div class="qz">×'+it.qty+'</div>':'')+
+    '<div class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>';
+  el.onclick=()=>{ it.done=!it.done; save(); render(); };
+  return el;
+}
+
+/* 買ったものを在庫へ補充して、リストから消す */
+function clearBought(storeId){
+  const arr=state.items[storeId]||[];
+  arr.filter(i=>i.done).forEach(i=> addToStock(i.name,i.icon,storeId,i.qty||1,i.color||''));
+  state.items[storeId]=arr.filter(i=>!i.done);
+  save(); render();
+}
+function addToStock(name,icon,store,qty,color){
+  const ex=state.stock.find(s=>s.name===name);
+  if(ex){ ex.qty+=qty; if(!ex.icon||ex.icon==='default') ex.icon=icon; if(color&&!ex.color) ex.color=color; }
+  else state.stock.push({id:uid(),name,icon,store,qty,color:color||''});
+}
+
+/* ===== 在庫ページ ===== */
+function renderStock(v){
+  const lead=document.createElement('div'); lead.className='stock-lead';
+  lead.innerHTML='<span>家の在庫（買ったら自動でたまります）</span>';
+  const add=document.createElement('button'); add.className='sec-add'; add.innerHTML=plusSvg;
+  add.onclick=()=>openSheet('stock',null); lead.appendChild(add);
+  v.appendChild(lead);
+
+  if(!state.stock.length){
+    v.innerHTML+='<div class="page-empty"><div class="big">'+svgIcon('house')+'</div><p>在庫はまだありません</p><p class="sub">買い物を完了すると自動でたまります</p></div>';
+    return;
+  }
+  const grid=document.createElement('div'); grid.className='stock-grid';
+  state.stock.slice().sort((a,b)=>(a.qty>0?0:1)-(b.qty>0?0:1)).forEach(s=>{
+    const store=storeById(s.store)||STORES[0];
+    const el=document.createElement('div'); el.className='stk'+(s.qty<=0?' zero':'');
+    el.style.setProperty('--accent',s.color||store.accent); el.style.setProperty('--accent-soft',s.color?softOf(s.color):store.soft);
+    el.innerHTML=
+      '<div class="stk-top"><div class="ic">'+svgIcon(s.icon)+'</div><div class="nm">'+esc(s.name)+'</div>'+
+        '<button class="stk-del" title="削除">'+svgIcon('trash')+'</button></div>'+
+      '<div class="stk-bot"><div class="step"><button class="mi">−</button><span class="n">'+s.qty+'</span><button class="pl">＋</button></div>'+
+        '<button class="to-cart">'+svgIcon('cart')+'カゴへ</button></div>';
+    el.querySelector('.mi').onclick=()=>{ s.qty=Math.max(0,s.qty-1); save(); render(); };
+    el.querySelector('.pl').onclick=()=>{ s.qty++; save(); render(); };
+    el.querySelector('.stk-del').onclick=()=>{ state.stock=state.stock.filter(x=>x.id!==s.id); save(); render(); };
+    el.querySelector('.to-cart').onclick=()=>{ stockToList(s); };
+    grid.appendChild(el);
+  });
+  v.appendChild(grid);
+}
+function stockToList(s){
+  const d=dictFind(s.name);
+  const store=s.store||(d&&d.store)||STORES[0].id;
+  const cat=(d&&d.category)||'';
+  const color=s.color||(d&&d.color)||'';
+  const arr=state.items[store];
+  const ex=arr.find(i=>i.name===s.name && (i.category||'')===(cat||''));
+  if(ex){ ex.qty++; ex.done=false; } else arr.push({id:uid(),name:s.name,category:cat,icon:s.icon,color,qty:1,done:false});
+  save(); tab=store; render();
+}
+
+/* ===== 追加シート ===== */
+const sheet=$('#sheet'),scrim=$('#scrim'),input=$('#searchInput'),suggest=$('#suggest');
+let sheetMode='list',sheetStore=null,newCat=null,regOn=true,newIcon='default',newColor='';
+scrim.onclick=closeSheet;
+input.addEventListener('input',e=>renderSuggest(e.target.value));
+$('#shareBtn').onclick=openShareSheet;
+$('#stockBtn').onclick=()=>{ tab='stock'; render(); };
+$('#settingsBtn').onclick=()=>{ tab='settings'; render(); };
+
+function openSheet(mode,storeId){
+  sheetMode=mode; sheetStore=storeId; input.value=''; newCat=null; regOn=true; newIcon='default'; newColor='';
+  if(mode==='stock'){ sheet.style.setProperty('--accent',NEUTRAL.accent); sheet.style.setProperty('--accent-soft','#EDEBE7'); $('#sheetTitle').textContent='在庫に追加'; }
+  else{ const st=storeById(storeId); sheet.style.setProperty('--accent',st.accent); sheet.style.setProperty('--accent-soft',st.soft); $('#sheetTitle').textContent=st.name+'に追加'; }
+  renderSuggest('');
+  scrim.classList.add('show'); sheet.classList.add('show');
+  setTimeout(()=>input.focus(),280);
+}
+function closeSheet(){ scrim.classList.remove('show'); sheet.classList.remove('show'); input.blur(); }
+function toHira(s){ return s.replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60)).toLowerCase().trim(); }
+
+function renderSuggest(q){
+  const qq=toHira(q); suggest.innerHTML='';
+  const store = sheetMode==='list' ? storeById(sheetStore) : null;
+  let pool = sheetMode==='list' ? DICT.filter(d=>d.store===sheetStore) : DICT;
+  let matches=(qq==='')? pool.slice(0,8)
+    : pool.filter(d=> toHira(d.reading).startsWith(qq) || toHira(d.name).startsWith(qq) || d.name.includes(q.trim()));
+
+  if(matches.length){
+    const g=document.createElement('div'); g.className='sug-grid';
+    matches.forEach(d=>{
+      const el=document.createElement('div'); el.className='sug-tile';
+      el.innerHTML='<div class="sug-icon"'+(d.color?' style="background:'+softOf(d.color)+';color:'+d.color+'"':'')+'>'+svgIcon(d.icon)+'</div><div class="sug-name">'+esc(d.name)+'</div>';
+      el.onclick=()=> sheetMode==='list' ? addItem(d.name,d.category,d.icon,d.color) : addStock(d.name,d.icon,d.store,d.color);
+      g.appendChild(el);
+    });
+    suggest.appendChild(g);
+  }
+
+  const typed=q.trim();
+  if(typed!=='' && !matches.some(m=>m.name===typed)){
+    const hasCats= sheetMode==='list' && store.cats.length>0;
+    if(hasCats && newCat===null) newCat=store.cats[0];
+    const card=document.createElement('div'); card.className='new-card';
+    let chips=''; if(hasCats) store.cats.forEach(c=> chips+='<span class="cat-chip'+(c===newCat?' sel':'')+'" data-cat="'+c+'">'+c+'</span>');
+    let ig=''; iconChoices(newIcon).forEach(k=> ig+='<div class="ic-pick'+(k===newIcon?' sel':'')+'" data-k="'+k+'">'+svgIcon(k)+'</div>');
+    card.innerHTML='<div class="new-top">「<b>'+esc(typed)+'</b>」を新しく追加</div>'+
+      (hasCats?'<div class="ed-label" style="margin-top:0">カテゴリ</div><div class="cat-pick">'+chips+'</div>':'')+
+      '<div class="ed-label">アイコン</div><div class="icon-grid">'+ig+'</div>'+
+      '<div class="new-row" style="margin-top:14px"><div class="reg-toggle'+(regOn?' on':'')+'" id="regT"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>辞書に登録</div>'+
+      '<button class="add-btn" id="addNew">追加する</button></div>';
+    suggest.appendChild(card);
+    if(hasCats) card.querySelectorAll('.cat-chip').forEach(ch=> ch.onclick=()=>{ newCat=ch.dataset.cat; renderSuggest(q); });
+    card.querySelectorAll('.ic-pick').forEach(el=> el.onclick=()=>{ newIcon=el.dataset.k; renderSuggest(q); });
+    card.querySelector('#regT').onclick=()=>{ regOn=!regOn; renderSuggest(q); };
+    card.querySelector('#addNew').onclick=()=>{
+      if(sheetMode==='list'){
+        const cat=hasCats?newCat:'';
+        if(regOn){ DICT.push({id:uid(),name:typed,reading:toHira(typed),store:sheetStore,category:cat,icon:newIcon,color:''}); save(); }
+        addItem(typed,cat,newIcon,'');
+      }else{
+        const st=STORES[0].id;
+        if(regOn){ DICT.push({id:uid(),name:typed,reading:toHira(typed),store:st,category:'',icon:newIcon,color:''}); save(); }
+        addStock(typed,newIcon,st,'');
+      }
+    };
+  }
+}
+
+function addItem(name,category,icon,color){
+  const arr=state.items[sheetStore];
+  const ex=arr.find(i=>i.name===name && (i.category||'')===(category||''));
+  if(ex){ ex.qty++; } else arr.push({id:uid(),name,category:category||'',icon,color:color||'',qty:1,done:false});
+  save(); render(); closeSheet();
+}
+function addStock(name,icon,store,color){
+  addToStock(name,icon,store,1,color||''); save(); render(); closeSheet();
+}
+
+/* =====================================================================
+   家族との共有（Firebase Realtime Database / 合言葉=ルームコード方式）
+   - state まるごとを /rooms/{合言葉}/state に同期（最後に書いた人の内容が反映）
+   - Firebaseの設定値は公開前提の値。秘密は「合言葉」とDBルール側で守る
+   ===================================================================== */
+const FIREBASE_CONFIG = {
+  apiKey:      "AIzaSyAaB6hkAXU7t8EXMrdHy0vC4hmyy4SFoqc",
+  authDomain:  "kaimonomemo-a9f51.firebaseapp.com",
+  databaseURL: "https://kaimonomemo-a9f51-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:   "kaimonomemo-a9f51",
+  appId:       "1:891065938449:web:f2b9e4f5e8eb7b27f6b7b0"
+};
+function fbConfigured(){ return FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey.indexOf('PASTE')<0; }
+
+const SHARE_KEY='kaimono-share';
+let share = (()=>{ try{ return JSON.parse(localStorage.getItem(SHARE_KEY))||{}; }catch(e){ return {}; } })();
+if(!share.clientId){ share.clientId='c'+Math.random().toString(36).slice(2,10); localStorage.setItem(SHARE_KEY, JSON.stringify(share)); }
+const CLIENT_ID=share.clientId;
+function saveShare(){ localStorage.setItem(SHARE_KEY, JSON.stringify(share)); }
+
+let fbApp=null, fbDb=null, fbRef=null, fbReady=false, fbOnline=false;
+let applyingRemote=false, pushTimer=null;
+
+async function fbInit(){
+  if(fbReady) return true;
+  if(!fbConfigured()) return false;
+  if(!window.firebase || !firebase.initializeApp){ alert('オンライン機能の読み込みに失敗しました。ネット接続を確認して、開き直してください。'); return false; }
+  try{
+    if(!fbApp) fbApp=firebase.initializeApp(FIREBASE_CONFIG);
+    fbDb=firebase.database();
+    await firebase.auth().signInAnonymously();
+    fbDb.ref('.info/connected').on('value', s=>{ fbOnline=!!s.val(); updateShareStatus(); });
+    fbReady=true; return true;
+  }catch(e){
+    alert('つなぐのに失敗しました：'+((e&&e.message)||e)+'\n（Firebaseで「匿名」ログインを有効にしたか確認してください）');
+    return false;
+  }
+}
+
+function genCode(){ const a='abcdefghjkmnpqrstuvwxyz23456789'; let s=''; for(let i=0;i<8;i++) s+=a[Math.floor(Math.random()*a.length)]; return s; }
+
+/* Firebaseは空配列/空オブジェクトを保存しないので、読み込み時に形を整える */
+function normalizeState(s){
+  s=s||{};
+  s.stores = Array.isArray(s.stores)? s.stores : JSON.parse(JSON.stringify(DEFAULT_STORES));
+  s.stores.forEach(st=>{ if(!Array.isArray(st.cats)) st.cats=[]; });
+  s.dict = Array.isArray(s.dict)? s.dict : [];
+  s.items = s.items || {};
+  s.stores.forEach(st=>{ if(!Array.isArray(s.items[st.id])) s.items[st.id]=[]; });
+  s.stock = Array.isArray(s.stock)? s.stock : [];
+  return s;
+}
+
+function attachRoom(){
+  if(!fbRef) return;
+  fbRef.on('value', snap=>{
+    const v=snap.val(); if(!v || !v.data) return;
+    if(v.by===CLIENT_ID) return;              // 自分の書き込みのこだまは無視
+    applyingRemote=true;
+    state=normalizeState(v.data); STORES=state.stores; DICT=state.dict;
+    localStorage.setItem(SKEY, JSON.stringify(state));
+    render();
+    applyingRemote=false;
+  });
+}
+function detachRoom(){ if(fbRef){ fbRef.off(); fbRef=null; } }
+
+function pushState(){
+  if(!fbReady || !fbRef) return;
+  fbRef.set({ by:CLIENT_ID, at:firebase.database.ServerValue.TIMESTAMP, data:state });
+}
+function schedulePush(){
+  if(!fbReady || !fbRef) return;
+  clearTimeout(pushTimer); pushTimer=setTimeout(pushState, 400);
+}
+
+function enterRoom(code, seed){
+  detachRoom();
+  share.roomCode=code; saveShare();
+  fbRef=fbDb.ref('rooms/'+code+'/state');
+  if(seed) pushState();                        // 自分のデータを部屋に置く（新規）
+  attachRoom();                                // 既存部屋なら最初の値で取り込み
+  renderShareSheet(); render();
+}
+async function shareCreate(){ if(!await fbInit()) return; enterRoom(genCode(), true); }
+async function shareJoinInput(){
+  const inp=$('#sh-code'); if(!inp) return;
+  const code=(inp.value||'').trim().toLowerCase().replace(/\s/g,'');
+  if(code.length<4){ alert('合言葉を入れてください。'); return; }
+  if(!await fbInit()) return;
+  const snap=await fbDb.ref('rooms/'+code+'/state').once('value');
+  if(!snap.exists()){
+    if(!confirm('その合言葉の部屋はまだありません。\n新しく作りますか？')) return;
+    enterRoom(code, true);
+  }else{
+    if(!confirm('部屋に入ります。\nこの端末のデータは部屋の内容に置き換わります。よろしいですか？')) return;
+    enterRoom(code, false);
+  }
+}
+function shareLeave(){
+  if(!confirm('共有から抜けますか？\n（このあとは端末内だけの保存に戻ります。今のデータはこの端末に残ります）')) return;
+  detachRoom(); share.roomCode=null; saveShare(); renderShareSheet(); render();
+}
+async function shareResume(){
+  if(!share.roomCode || !fbConfigured()) return;
+  if(!await fbInit()) return;
+  fbRef=fbDb.ref('rooms/'+share.roomCode+'/state');
+  attachRoom();
+}
+
+/* ===== 共有シート ===== */
+const shareSheet=$('#shareSheet'), scrim4=$('#scrim4');
+scrim4.onclick=closeShareSheet;
+function openShareSheet(){ renderShareSheet(); scrim4.classList.add('show'); shareSheet.classList.add('show'); }
+function closeShareSheet(){ scrim4.classList.remove('show'); shareSheet.classList.remove('show'); }
+function updateShareStatus(){
+  const st=$('#sh-status'); if(!st) return;
+  st.className='share-status'+(fbOnline?' on':'');
+  const t=st.querySelector('.t'); if(t) t.textContent=fbOnline?'つながっています':'接続中…';
+}
+function renderShareSheet(){
+  shareSheet.style.setProperty('--accent',NEUTRAL.accent); shareSheet.style.setProperty('--accent-soft','#EDEBE7');
+  const b=$('#shareBody');
+  if(!fbConfigured()){
+    b.innerHTML='<h3>家族と共有</h3>'+
+      '<p class="hint">使う前に、一度だけFirebaseのカンタンなセットアップが必要です。</p>'+
+      '<div class="share-steps">'+
+        '<b>1.</b> <code>console.firebase.google.com</code> で無料プロジェクトを作成<br>'+
+        '<b>2.</b> 左メニュー「Realtime Database」を作成<br>'+
+        '<b>3.</b> 「Authentication」→ ログイン方法 →「匿名」を有効化<br>'+
+        '<b>4.</b> 設定（歯車）→ マイアプリ → Web を追加 → <b>firebaseConfig</b> をコピー<br>'+
+        '<b>5.</b> その値を <code>index.html</code> の <code>FIREBASE_CONFIG</code> に貼って保存<br>'+
+        '<b>6.</b> Database のルールに、私が渡すルールを貼る'+
+      '</div>'+
+      '<p class="hint" style="margin-top:12px">設定が終わって開き直すと、ここで合言葉が作れます。</p>';
+    return;
+  }
+  if(!share.roomCode){
+    b.innerHTML='<h3>家族と共有</h3>'+
+      '<p class="hint">合言葉を作って家族に伝えると、同じ買い物メモをみんなで使えます。</p>'+
+      '<button class="ed-save" id="sh-create" style="width:100%;margin:6px 0 18px">合言葉を作って共有を始める</button>'+
+      '<div class="ed-label">家族の合言葉で参加する</div>'+
+      '<div style="display:flex;gap:8px"><input id="sh-code" class="ed-input" placeholder="合言葉を入力" autocomplete="off" style="flex:1" />'+
+        '<button class="ed-save" id="sh-join" style="padding:13px 18px">参加</button></div>';
+    $('#sh-create').onclick=shareCreate;
+    $('#sh-join').onclick=shareJoinInput;
+    return;
+  }
+  b.innerHTML='<h3>家族と共有中</h3>'+
+    '<p class="hint">この合言葉を家族に伝えてください。同じ言葉を入れた端末と同期します。</p>'+
+    '<div class="share-code">'+esc(share.roomCode)+'</div>'+
+    '<div class="share-status" id="sh-status"><span class="d"></span><span class="t">接続中…</span></div>'+
+    '<button class="ed-save" id="sh-copy" style="width:100%;margin-bottom:10px">合言葉をコピー</button>'+
+    '<button class="add-row" id="sh-leave" style="color:#C97B6B">共有から抜ける</button>';
+  $('#sh-copy').onclick=()=>{ try{ navigator.clipboard.writeText(share.roomCode); }catch(e){} const c=$('#sh-copy'); if(c){ c.textContent='コピーしました'; setTimeout(()=>{ const c2=$('#sh-copy'); if(c2) c2.textContent='合言葉をコピー'; },1200); } };
+  $('#sh-leave').onclick=shareLeave;
+  updateShareStatus();
+}
+
+renderTabs(); render(); shareResume();
+</script>
+</body>
+</html>
