@@ -956,15 +956,29 @@ function renderSuggest(q){
   matches.sort((a,b)=> (hasCats ? (catRank(store,a.category)-catRank(store,b.category)) : 0)
     || toHira(a.reading||a.name).localeCompare(toHira(b.reading||b.name),'ja'));
 
+  const sugTile=d=>{
+    const el=document.createElement('div'); el.className='sug-tile';
+    el.innerHTML='<div class="sug-icon"'+(d.color?' style="background:'+softOf(d.color)+';color:'+d.color+'"':'')+'>'+svgIcon(d.icon)+'</div><div class="sug-name">'+esc(d.name)+'</div>';
+    el.onclick=()=> sheetMode==='list' ? addItem(d.name,d.category,d.icon,d.color) : addStock(d.name,d.icon,d.store,d.color);
+    return el;
+  };
   if(matches.length){
-    const g=document.createElement('div'); g.className='sug-grid';
-    matches.forEach(d=>{
-      const el=document.createElement('div'); el.className='sug-tile';
-      el.innerHTML='<div class="sug-icon"'+(d.color?' style="background:'+softOf(d.color)+';color:'+d.color+'"':'')+'>'+svgIcon(d.icon)+'</div><div class="sug-name">'+esc(d.name)+'</div>';
-      el.onclick=()=> sheetMode==='list' ? addItem(d.name,d.category,d.icon,d.color) : addStock(d.name,d.icon,d.store,d.color);
-      g.appendChild(el);
-    });
-    suggest.appendChild(g);
+    if(sheetMode==='stock'){
+      /* お店ごとに見出しを付け、その店のカテゴリ順→50音で並べる */
+      const groups=[...STORES, {id:'_other',name:'その他',cats:[]}];
+      groups.forEach(st=>{
+        const inStore = st.id==='_other' ? matches.filter(d=>!storeById(d.store)) : matches.filter(d=>d.store===st.id);
+        if(!inStore.length) return;
+        inStore.sort((a,b)=> (catRank(st,a.category)-catRank(st,b.category))
+          || toHira(a.reading||a.name).localeCompare(toHira(b.reading||b.name),'ja'));
+        const sh=document.createElement('div'); sh.className='sub-head'; sh.textContent=st.name; suggest.appendChild(sh);
+        const g=document.createElement('div'); g.className='sug-grid';
+        inStore.forEach(d=> g.appendChild(sugTile(d))); suggest.appendChild(g);
+      });
+    }else{
+      const g=document.createElement('div'); g.className='sug-grid';
+      matches.forEach(d=> g.appendChild(sugTile(d))); suggest.appendChild(g);
+    }
   }
 
   const typed=q.trim();
