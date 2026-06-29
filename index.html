@@ -106,8 +106,10 @@
   .to-cart{margin-left:auto;display:flex;align-items:center;justify-content:center;gap:5px;background:var(--accent-soft);color:var(--accent);border:none;border-radius:10px;padding:8px 18px;font-size:12.5px;font-weight:800;cursor:pointer;}
   .to-cart:active{transform:scale(.97);}
   .to-cart svg{width:15px;height:15px;}
-  .stk.zero{opacity:.45;}
-  .stk.zero .ic{background:var(--bg);color:var(--muted);}
+  /* 在庫0：薄くするのはアイコン・名前・数量だけ。カゴへ／ゴミ箱は明るいまま */
+  .stk.zero .ic{background:var(--bg);color:var(--muted);opacity:.5;}
+  .stk.zero .nm{color:var(--muted);}
+  .stk.zero .step{opacity:.5;}
 
   .page-empty{text-align:center;color:var(--muted);padding:60px 30px;}
   .page-empty .big{width:60px;height:60px;border-radius:18px;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;margin:0 auto 14px;color:var(--accent);box-shadow:var(--shadow-sm);}
@@ -130,6 +132,10 @@
   .search svg{width:19px;height:19px;color:var(--muted);flex:0 0 auto;}
   .search input{border:none;background:none;outline:none;font-size:16px;font-weight:600;color:var(--ink);width:100%;font-family:inherit;}
   .search input::placeholder{color:var(--muted);font-weight:500;}
+  .sort-toggle{display:flex;gap:6px;margin-top:11px;}
+  .sort-toggle button{flex:1;border:1px solid var(--line);background:var(--card);color:var(--ink-2);border-radius:10px;padding:8px;font-size:12.5px;font-weight:800;cursor:pointer;font-family:inherit;transition:transform .1s ease;}
+  .sort-toggle button:active{transform:scale(.97);}
+  .sort-toggle button.sel{background:var(--accent);color:#fff;border-color:transparent;}
   .suggest{margin-top:12px;overflow-y:auto;flex:1;min-height:0;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
   .sug-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
   .sug-tile{display:flex;align-items:center;gap:9px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:8px 10px;cursor:pointer;transition:transform .1s ease,background .15s ease;min-width:0;}
@@ -264,6 +270,7 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
     <input id="searchInput" type="text" placeholder="例：ぎゅうにゅう" autocomplete="off" />
   </div>
+  <div class="sort-toggle" id="sortToggle"></div>
   <div class="suggest" id="suggest"></div>
 </div>
 
@@ -507,6 +514,62 @@ const DEFAULT_DICT = [
   {name:'布団カバー',reading:'ふとんかばー',store:'nitori',category:'',icon:'bed'},
   {name:'収納ボックス',reading:'しゅうのうぼっくす',store:'nitori',category:'',icon:'box'},
 ];
+/* あとから増やした候補。新規の人はDEFAULTと合わせて入る。既存の人はseedExtraDictで一度だけ追加（重複・復活防止） */
+const EXTRA_DICT = [
+  {name:'もやし',reading:'もやし',store:'super',category:'野菜',icon:'vegetable'},
+  {name:'ほうれん草',reading:'ほうれんそう',store:'super',category:'野菜',icon:'vegetable'},
+  {name:'ピーマン',reading:'ぴーまん',store:'super',category:'野菜',icon:'pepper'},
+  {name:'なす',reading:'なす',store:'super',category:'野菜',icon:'vegetable'},
+  {name:'きのこ',reading:'きのこ',store:'super',category:'野菜',icon:'mushroom'},
+  {name:'ブロッコリー',reading:'ぶろっこりー',store:'super',category:'野菜',icon:'broccoli'},
+  {name:'ぶどう',reading:'ぶどう',store:'super',category:'野菜',icon:'grapes'},
+  {name:'レモン',reading:'れもん',store:'super',category:'野菜',icon:'lemon'},
+  {name:'いちご',reading:'いちご',store:'super',category:'野菜',icon:'fruit'},
+  {name:'みかん',reading:'みかん',store:'super',category:'野菜',icon:'fruit'},
+  {name:'ウインナー',reading:'ういんなー',store:'super',category:'肉・魚',icon:'sausage'},
+  {name:'ベーコン',reading:'べーこん',store:'super',category:'肉・魚',icon:'sausage'},
+  {name:'ハム',reading:'はむ',store:'super',category:'肉・魚',icon:'sausage'},
+  {name:'えび',reading:'えび',store:'super',category:'肉・魚',icon:'shrimp'},
+  {name:'まぐろ',reading:'まぐろ',store:'super',category:'肉・魚',icon:'fish'},
+  {name:'豆腐',reading:'とうふ',store:'super',category:'',icon:'tofu'},
+  {name:'納豆',reading:'なっとう',store:'super',category:'',icon:'tofu'},
+  {name:'うどん',reading:'うどん',store:'super',category:'冷凍食品',icon:'noodle'},
+  {name:'パスタ',reading:'ぱすた',store:'super',category:'',icon:'pasta'},
+  {name:'小麦粉',reading:'こむぎこ',store:'super',category:'調味料',icon:'flour'},
+  {name:'ケチャップ',reading:'けちゃっぷ',store:'super',category:'調味料',icon:'bottle'},
+  {name:'マヨネーズ',reading:'まよねーず',store:'super',category:'調味料',icon:'bottle'},
+  {name:'ソース',reading:'そーす',store:'super',category:'調味料',icon:'bottle'},
+  {name:'コーヒー',reading:'こーひー',store:'super',category:'飲料',icon:'coffee'},
+  {name:'ビール',reading:'びーる',store:'super',category:'飲料',icon:'beer'},
+  {name:'クッキー',reading:'くっきー',store:'super',category:'お菓子',icon:'cookie'},
+  {name:'あめ',reading:'あめ',store:'super',category:'お菓子',icon:'candy'},
+  {name:'ケーキ',reading:'けーき',store:'super',category:'お菓子',icon:'cake'},
+  {name:'マスク',reading:'ますく',store:'drug',category:'',icon:'mask'},
+  {name:'おむつ',reading:'おむつ',store:'drug',category:'',icon:'diaper'},
+  {name:'目薬',reading:'めぐすり',store:'drug',category:'',icon:'medicine'},
+  {name:'胃薬',reading:'いぐすり',store:'drug',category:'',icon:'medicine'},
+  {name:'リップクリーム',reading:'りっぷくりーむ',store:'drug',category:'',icon:'lotion'},
+  {name:'日焼け止め',reading:'ひやけどめ',store:'drug',category:'',icon:'lotion'},
+  {name:'ハンドクリーム',reading:'はんどくりーむ',store:'drug',category:'',icon:'lotion'},
+  {name:'ボディソープ',reading:'ぼでぃそーぷ',store:'drug',category:'',icon:'soap'},
+  {name:'洗顔料',reading:'せんがんりょう',store:'drug',category:'',icon:'soap'},
+  {name:'ラップ',reading:'らっぷ',store:'hyaku',category:'',icon:'wrap'},
+  {name:'アルミホイル',reading:'あるみほいる',store:'hyaku',category:'',icon:'wrap'},
+  {name:'ガムテープ',reading:'がむてーぷ',store:'hyaku',category:'',icon:'tape'},
+  {name:'はさみ',reading:'はさみ',store:'hyaku',category:'',icon:'scissors'},
+  {name:'お皿',reading:'おさら',store:'hyaku',category:'',icon:'plate'},
+  {name:'コップ',reading:'こっぷ',store:'hyaku',category:'',icon:'cup'},
+  {name:'箸',reading:'はし',store:'hyaku',category:'',icon:'chopsticks'},
+  {name:'釘',reading:'くぎ',store:'home',category:'',icon:'nail'},
+  {name:'ネジ',reading:'ねじ',store:'home',category:'',icon:'screw'},
+  {name:'ペンキ',reading:'ぺんき',store:'home',category:'',icon:'paint'},
+  {name:'肥料',reading:'ひりょう',store:'home',category:'',icon:'plant'},
+  {name:'タオル',reading:'たおる',store:'nitori',category:'',icon:'towel'},
+  {name:'バスタオル',reading:'ばすたおる',store:'nitori',category:'',icon:'towel'},
+  {name:'ハンガー',reading:'はんがー',store:'nitori',category:'',icon:'hanger'},
+  {name:'クッション',reading:'くっしょん',store:'nitori',category:'',icon:'pillow'},
+  {name:'毛布',reading:'もうふ',store:'nitori',category:'',icon:'blanket'},
+];
 function dictFind(name){ return DICT.find(d=>d.name===name); }
 /* 並び替え用：カテゴリの順位（店の定義順→未定義→なしの順で後ろへ）と、名前から読みを引く */
 function catRank(store,cat){ if(!cat) return 9999; const i=store.cats.indexOf(cat); return i<0?9998:i; }
@@ -523,8 +586,9 @@ let DICT=state.dict;
 function load(){
   try{ const s=JSON.parse(localStorage.getItem(SKEY)); if(s) return s; }catch(e){}
   return {
+    extraSeeded:true,
     stores: JSON.parse(JSON.stringify(DEFAULT_STORES)),
-    dict: DEFAULT_DICT.map(d=>({id:uid(),color:'',...d})),
+    dict: [...DEFAULT_DICT,...EXTRA_DICT].map(d=>({id:uid(),color:'',...d})),
     items:{
       super:[
         {id:uid(),name:'牛乳',category:'乳製品',icon:'milk',qty:1,done:false},
@@ -544,6 +608,17 @@ function load(){
   };
 }
 function save(){ localStorage.setItem(SKEY, JSON.stringify(state)); if(share.roomCode && !applyingRemote) schedulePush(); }
+/* 既存ユーザーにも追加候補を一度だけ足す。同じ名前＋お店があれば足さない（重複・消した物の復活を防ぐ）。
+   共有中（部屋）で同期データに未シードなら、足してから部屋にも反映する */
+function seedExtraDict(push){
+  if(state.extraSeeded) return false;
+  let added=0;
+  EXTRA_DICT.forEach(d=>{ if(!DICT.some(x=>x.name===d.name && x.store===d.store)){ DICT.push({id:uid(),color:'',...d}); added++; } });
+  state.extraSeeded=true;
+  localStorage.setItem(SKEY, JSON.stringify(state));
+  if(push && fbReady && fbRef) pushState();
+  return added>0;
+}
 
 const $=s=>document.querySelector(s);
 function storeById(id){ return STORES.find(s=>s.id===id); }
@@ -767,6 +842,14 @@ function renderDictEditor(){
   dictSheet.querySelectorAll('.ic-pick').forEach(el=> el.onclick=()=>{ syncDictDraft(); dictDraft.icon=el.dataset.k; renderDictEditor(); });
   $('#de-save').onclick=saveDict;
   const del=$('#de-del'); if(del) del.onclick=()=>{ closeDictEditor(); deleteDict(dictDraft); };
+  /* 名前を打つとふりがなを自動で入れる（読みが空のときだけ。手で直したら以後は上書きしない） */
+  const dn=$('#de-name'), drd=$('#de-reading');
+  if(dn && drd){
+    let auto=!dictDraft.reading;
+    drd.addEventListener('input',()=>{ auto=false; dictDraft.reading=drd.value; });
+    dn.addEventListener('input',e=>{ const v=dn.value.trim(); if(!e.isComposing && auto && KANA_ONLY.test(v)){ drd.value=toHira(v); dictDraft.reading=drd.value; } });
+    captureIme(dn, rd=>{ if(auto){ drd.value=rd; dictDraft.reading=rd; } });
+  }
 }
 function saveDict(){
   syncDictDraft();
@@ -886,7 +969,9 @@ function renderStock(v){
   v.appendChild(lead);
 
   if(!state.stock.length){
-    v.innerHTML+='<div class="page-empty"><div class="big">'+svgIcon('house')+'</div><p>在庫はまだありません</p><p class="sub">買い物を完了すると自動でたまります</p></div>';
+    const e=document.createElement('div'); e.className='page-empty';
+    e.innerHTML='<div class="big">'+svgIcon('house')+'</div><p>在庫はまだありません</p><p class="sub">買い物を完了すると自動でたまります</p>';
+    v.appendChild(e);
     return;
   }
   /* お店ごとに分けて表示（順番はお店の並び順、未対応の店は「その他」へ） */
@@ -933,19 +1018,43 @@ function stockToList(s){
 /* ===== 追加シート ===== */
 const sheet=$('#sheet'),scrim=$('#scrim'),input=$('#searchInput'),suggest=$('#suggest');
 let sheetMode='list',sheetStore=null,newCat=null,regOn=true,newIcon='default',newColor='';
+let newReading='',newReadingTouched=false;
+let suggestSort=localStorage.getItem('kaimono-sort')||'kana';   // 'kana'(50音) | 'freq'(よく買う順)
 scrim.onclick=closeSheet;
 $('#sheetClose').onclick=closeSheet;
 $('#sheet .grip').onclick=closeSheet;
-input.addEventListener('input',e=>renderSuggest(e.target.value));
+const KANA_ONLY=/^[ぁ-んゔ ー]+$/;
+input.addEventListener('input',e=>{
+  const v=e.target.value;
+  if(v.trim()===''){ newReading=''; newReadingTouched=false; }
+  else if(!e.isComposing && !newReadingTouched && KANA_ONLY.test(v.trim())){ newReading=toHira(v.trim()); }
+  renderSuggest(v);
+});
+/* IME入力を拾う：漢字に変換する前に打ったひらがなを、ふりがなとして自動セット */
+function captureIme(el, onKana){
+  let kana='';
+  el.addEventListener('compositionstart',()=>{ kana=''; });
+  el.addEventListener('compositionupdate',ev=>{ const d=ev.data||''; if(KANA_ONLY.test(d)) kana=d; });
+  el.addEventListener('compositionend',()=>{ if(kana) onKana(toHira(kana)); kana=''; });
+}
+captureIme(input, rd=>{ if(!newReadingTouched){ newReading=rd; renderSuggest(input.value); } });
+function renderSortToggle(){
+  const t=$('#sortToggle'); if(!t) return;
+  t.innerHTML='<button data-s="kana"'+(suggestSort==='kana'?' class="sel"':'')+'>50音順</button>'+
+    '<button data-s="freq"'+(suggestSort==='freq'?' class="sel"':'')+'>よく買う順</button>';
+  t.querySelectorAll('button').forEach(b=> b.onclick=()=>{ suggestSort=b.dataset.s; localStorage.setItem('kaimono-sort',suggestSort); renderSortToggle(); renderSuggest(input.value); });
+}
+function bumpFreq(d){ if(d) d.freq=(d.freq||0)+1; }
 $('#shareBtn').onclick=openShareSheet;
 $('#stockBtn').onclick=()=>{ tab='stock'; render(); };
 $('#settingsBtn').onclick=()=>{ tab='settings'; render(); };
 
 function openSheet(mode,storeId){
   sheetMode=mode; sheetStore=storeId; input.value=''; newCat=null; regOn=true; newIcon='default'; newColor='';
+  newReading=''; newReadingTouched=false;
   if(mode==='stock'){ sheet.style.setProperty('--accent',NEUTRAL.accent); sheet.style.setProperty('--accent-soft','#EDEBE7'); $('#sheetTitle').textContent='在庫に追加'; }
   else{ const st=storeById(storeId); sheet.style.setProperty('--accent',st.accent); sheet.style.setProperty('--accent-soft',st.soft); $('#sheetTitle').textContent=st.name+'に追加'; }
-  renderSuggest('');
+  renderSortToggle(); renderSuggest('');
   scrim.classList.add('show'); sheet.classList.add('show');
   setTimeout(()=>input.focus(),280);
 }
@@ -959,13 +1068,18 @@ function renderSuggest(q){
   let matches=(qq==='')? pool.slice()
     : pool.filter(d=> toHira(d.reading).startsWith(qq) || toHira(d.name).startsWith(qq) || d.name.includes(q.trim()));
   const hasCats = store && store.cats.length>0;
-  matches.sort((a,b)=> (hasCats ? (catRank(store,a.category)-catRank(store,b.category)) : 0)
-    || toHira(a.reading||a.name).localeCompare(toHira(b.reading||b.name),'ja'));
+  /* 並び順：よく買う順なら頻度→（同数なら）カテゴリ→50音。50音順ならカテゴリ→50音 */
+  const cmp=(st,withCats)=>(a,b)=>{
+    if(suggestSort==='freq'){ const fd=(b.freq||0)-(a.freq||0); if(fd) return fd; }
+    return (withCats ? (catRank(st,a.category)-catRank(st,b.category)) : 0)
+      || toHira(a.reading||a.name).localeCompare(toHira(b.reading||b.name),'ja');
+  };
+  matches.sort(cmp(store,hasCats));
 
   const sugTile=d=>{
     const el=document.createElement('div'); el.className='sug-tile';
     el.innerHTML='<div class="sug-icon"'+(d.color?' style="background:'+softOf(d.color)+';color:'+d.color+'"':'')+'>'+svgIcon(d.icon)+'</div><div class="sug-name">'+esc(d.name)+'</div>';
-    el.onclick=()=> sheetMode==='list' ? addItem(d.name,d.category,d.icon,d.color) : addStock(d.name,d.icon,d.store,d.color);
+    el.onclick=()=>{ bumpFreq(d); sheetMode==='list' ? addItem(d.name,d.category,d.icon,d.color) : addStock(d.name,d.icon,d.store,d.color); };
     return el;
   };
   if(matches.length){
@@ -975,8 +1089,7 @@ function renderSuggest(q){
       groups.forEach(st=>{
         const inStore = st.id==='_other' ? matches.filter(d=>!storeById(d.store)) : matches.filter(d=>d.store===st.id);
         if(!inStore.length) return;
-        inStore.sort((a,b)=> (catRank(st,a.category)-catRank(st,b.category))
-          || toHira(a.reading||a.name).localeCompare(toHira(b.reading||b.name),'ja'));
+        inStore.sort(cmp(st,true));
         const sh=document.createElement('div'); sh.className='sub-head'; sh.textContent=st.name; suggest.appendChild(sh);
         const g=document.createElement('div'); g.className='sug-grid';
         inStore.forEach(d=> g.appendChild(sugTile(d))); suggest.appendChild(g);
@@ -994,23 +1107,29 @@ function renderSuggest(q){
     const card=document.createElement('div'); card.className='new-card';
     let chips=''; if(hasCats) store.cats.forEach(c=> chips+='<span class="cat-chip'+(c===newCat?' sel':'')+'" data-cat="'+c+'">'+c+'</span>');
     let ig=''; iconChoices(newIcon).forEach(k=> ig+='<div class="ic-pick'+(k===newIcon?' sel':'')+'" data-k="'+k+'">'+svgIcon(k)+'</div>');
+    const rdVal=newReading||(KANA_ONLY.test(typed)?toHira(typed):'');
     card.innerHTML='<div class="new-top">「<b>'+esc(typed)+'</b>」を新しく追加</div>'+
-      (hasCats?'<div class="ed-label" style="margin-top:0">カテゴリ</div><div class="cat-pick">'+chips+'</div>':'')+
+      '<div class="ed-label" style="margin-top:0">ふりがな（自動・違ったら直す）</div>'+
+      '<input id="newRd" class="ed-input" value="'+esc(rdVal).replace(/"/g,'&quot;')+'" placeholder="ひらがな" autocomplete="off" />'+
+      (hasCats?'<div class="ed-label">カテゴリ</div><div class="cat-pick">'+chips+'</div>':'')+
       '<div class="ed-label">アイコン</div><div class="icon-grid">'+ig+'</div>'+
       '<div class="new-row" style="margin-top:14px"><div class="reg-toggle'+(regOn?' on':'')+'" id="regT"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>辞書に登録</div>'+
       '<button class="add-btn" id="addNew">追加する</button></div>';
     suggest.appendChild(card);
+    const nr=card.querySelector('#newRd');
+    if(nr){ nr.addEventListener('input',()=>{ newReading=nr.value; newReadingTouched=true; }); }
     if(hasCats) card.querySelectorAll('.cat-chip').forEach(ch=> ch.onclick=()=>{ newCat=ch.dataset.cat; renderSuggest(q); });
     card.querySelectorAll('.ic-pick').forEach(el=> el.onclick=()=>{ newIcon=el.dataset.k; renderSuggest(q); });
     card.querySelector('#regT').onclick=()=>{ regOn=!regOn; renderSuggest(q); };
     card.querySelector('#addNew').onclick=()=>{
+      const reading=(newReading.trim()||toHira(typed));
       if(sheetMode==='list'){
         const cat=hasCats?newCat:'';
-        if(regOn){ DICT.push({id:uid(),name:typed,reading:toHira(typed),store:sheetStore,category:cat,icon:newIcon,color:''}); save(); }
+        if(regOn){ DICT.push({id:uid(),name:typed,reading,store:sheetStore,category:cat,icon:newIcon,color:'',freq:1}); save(); }
         addItem(typed,cat,newIcon,'');
       }else{
         const st=STORES[0].id;
-        if(regOn){ DICT.push({id:uid(),name:typed,reading:toHira(typed),store:st,category:'',icon:newIcon,color:''}); save(); }
+        if(regOn){ DICT.push({id:uid(),name:typed,reading,store:st,category:'',icon:newIcon,color:'',freq:1}); save(); }
         addStock(typed,newIcon,st,'');
       }
     };
@@ -1089,6 +1208,7 @@ function attachRoom(){
     state=normalizeState(v.data); STORES=state.stores; DICT=state.dict;
     localStorage.setItem(SKEY, JSON.stringify(state));
     render();
+    if(seedExtraDict(true)) render();   // 同期データに追加候補が無ければ足して部屋にも反映
     applyingRemote=false;
   });
 }
@@ -1186,7 +1306,7 @@ function renderShareSheet(){
   updateShareStatus();
 }
 
-renderTabs(); render(); shareResume();
+seedExtraDict(); renderTabs(); render(); shareResume();
 
 /* ホーム画面アプリ（PWA）化：保存が消えないよう正式なアプリとして動かす＋オフライン対応 */
 if('serviceWorker' in navigator){
