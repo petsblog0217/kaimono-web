@@ -440,7 +440,7 @@ const PALETTE=[
 /* ===== お店データ（初期値。保存後は state.stores が正） ===== */
 const DEFAULT_STORES = [
   { id:'super',  name:'スーパー',     icon:'cart',     accent:'#7FB893', soft:'#E9F3EC',
-    cats:['野菜','肉・魚','乳製品','パン','飲料','調味料','冷凍食品','お菓子'] },
+    cats:['野菜','果物','肉','魚','乳製品','ごはん・パン','飲料','調味料','冷凍食品','お菓子'] },
   { id:'drug',   name:'ドラッグストア', icon:'medicine', accent:'#7FA8D6', soft:'#E8F0F9', cats:[] },
   { id:'hyaku',  name:'100均',       icon:'box',      accent:'#E29AA4', soft:'#F8ECEE', cats:[] },
   { id:'home',   name:'ホームセンター', icon:'tool',     accent:'#D6AE84', soft:'#F5EEE2', cats:[] },
@@ -570,6 +570,63 @@ const EXTRA_DICT = [
   {name:'クッション',reading:'くっしょん',store:'nitori',category:'',icon:'pillow'},
   {name:'毛布',reading:'もうふ',store:'nitori',category:'',icon:'blanket'},
 ];
+/* 第2弾の追加候補（スーパー以外）。migrateV2 で一度だけ足す */
+const EXTRA_DICT2 = [
+  // ドラッグストア
+  {name:'食器用洗剤',reading:'しょっきようせんざい',store:'drug',category:'',icon:'detergent'},
+  {name:'漂白剤',reading:'ひょうはくざい',store:'drug',category:'',icon:'detergent'},
+  {name:'芳香剤',reading:'ほうこうざい',store:'drug',category:'',icon:'bottle'},
+  {name:'虫除けスプレー',reading:'むしよけすぷれー',store:'drug',category:'',icon:'bottle'},
+  {name:'のど飴',reading:'のどあめ',store:'drug',category:'',icon:'candy'},
+  {name:'頭痛薬',reading:'ずつうやく',store:'drug',category:'',icon:'medicine'},
+  {name:'消毒液',reading:'しょうどくえき',store:'drug',category:'',icon:'soap'},
+  {name:'入浴剤',reading:'にゅうよくざい',store:'drug',category:'',icon:'soap'},
+  {name:'カミソリ',reading:'かみそり',store:'drug',category:'',icon:'knife'},
+  {name:'体温計',reading:'たいおんけい',store:'drug',category:'',icon:'medicine'},
+  {name:'乳液',reading:'にゅうえき',store:'drug',category:'',icon:'lotion'},
+  {name:'メイク落とし',reading:'めいくおとし',store:'drug',category:'',icon:'lotion'},
+  {name:'ウェットティッシュ',reading:'うぇっとてぃっしゅ',store:'drug',category:'',icon:'tissue'},
+  // 100均
+  {name:'ゴミ袋',reading:'ごみぶくろ',store:'hyaku',category:'',icon:'shopbag'},
+  {name:'キッチンペーパー',reading:'きっちんぺーぱー',store:'hyaku',category:'',icon:'tissue'},
+  {name:'ジップ袋',reading:'じっぷぶくろ',store:'hyaku',category:'',icon:'shopbag'},
+  {name:'セロハンテープ',reading:'せろはんてーぷ',store:'hyaku',category:'',icon:'tape'},
+  {name:'両面テープ',reading:'りょうめんてーぷ',store:'hyaku',category:'',icon:'tape'},
+  {name:'ふきん',reading:'ふきん',store:'hyaku',category:'',icon:'towel'},
+  {name:'たわし',reading:'たわし',store:'hyaku',category:'',icon:'soap'},
+  {name:'メラミンスポンジ',reading:'めらみんすぽんじ',store:'hyaku',category:'',icon:'soap'},
+  {name:'洗濯ネット',reading:'せんたくねっと',store:'hyaku',category:'',icon:'basket'},
+  {name:'S字フック',reading:'えすじふっく',store:'hyaku',category:'',icon:'hanger'},
+  {name:'突っ張り棒',reading:'つっぱりぼう',store:'hyaku',category:'',icon:'tool'},
+  {name:'ノート',reading:'のーと',store:'hyaku',category:'',icon:'book'},
+  {name:'付箋',reading:'ふせん',store:'hyaku',category:'',icon:'pen'},
+  {name:'カッター',reading:'かったー',store:'hyaku',category:'',icon:'knife'},
+  // ホームセンター
+  {name:'メジャー',reading:'めじゃー',store:'home',category:'',icon:'tool'},
+  {name:'軍手',reading:'ぐんて',store:'home',category:'',icon:'tool'},
+  {name:'のこぎり',reading:'のこぎり',store:'home',category:'',icon:'tool'},
+  {name:'じょうろ',reading:'じょうろ',store:'home',category:'',icon:'plant'},
+  {name:'スコップ',reading:'すこっぷ',store:'home',category:'',icon:'tool'},
+  {name:'殺虫剤',reading:'さっちゅうざい',store:'home',category:'',icon:'bottle'},
+  {name:'除草剤',reading:'じょそうざい',store:'home',category:'',icon:'bottle'},
+  {name:'LED電球',reading:'えるいーでぃーでんきゅう',store:'home',category:'',icon:'light'},
+  {name:'ほうき',reading:'ほうき',store:'home',category:'',icon:'brush'},
+  {name:'バケツ',reading:'ばけつ',store:'home',category:'',icon:'basket'},
+  // ニトリ
+  {name:'カーテン',reading:'かーてん',store:'nitori',category:'',icon:'blanket'},
+  {name:'シーツ',reading:'しーつ',store:'nitori',category:'',icon:'bed'},
+  {name:'枕カバー',reading:'まくらかばー',store:'nitori',category:'',icon:'pillow'},
+  {name:'掛け布団',reading:'かけぶとん',store:'nitori',category:'',icon:'blanket'},
+  {name:'カラーボックス',reading:'からーぼっくす',store:'nitori',category:'',icon:'shelf'},
+  {name:'デスクライト',reading:'ですくらいと',store:'nitori',category:'',icon:'lamp'},
+  {name:'時計',reading:'とけい',store:'nitori',category:'',icon:'clock'},
+  {name:'鏡',reading:'かがみ',store:'nitori',category:'',icon:'mirror'},
+  {name:'フライパン',reading:'ふらいぱん',store:'nitori',category:'',icon:'pan'},
+  {name:'鍋',reading:'なべ',store:'nitori',category:'',icon:'pot'},
+  {name:'バスマット',reading:'ばすまっと',store:'nitori',category:'',icon:'towel'},
+  {name:'スリッパ',reading:'すりっぱ',store:'nitori',category:'',icon:'shoes'},
+  {name:'ゴミ箱',reading:'ごみばこ',store:'nitori',category:'',icon:'basket'},
+];
 function dictFind(name){ return DICT.find(d=>d.name===name); }
 /* 並び替え用：カテゴリの順位（店の定義順→未定義→なしの順で後ろへ）と、名前から読みを引く */
 function catRank(store,cat){ if(!cat) return 9999; const i=store.cats.indexOf(cat); return i<0?9998:i; }
@@ -618,6 +675,64 @@ function seedExtraDict(push){
   localStorage.setItem(SKEY, JSON.stringify(state));
   if(push && fbReady && fbRef) pushState();
   return added>0;
+}
+
+/* スーパーのカテゴリ再編（果物分離・肉魚分割・ごはんパン統合）＋他店候補追加。一度だけ */
+const SUPER_CATS_V2=['野菜','果物','肉','魚','乳製品','ごはん・パン','飲料','調味料','冷凍食品','お菓子'];
+const V2_FRUIT=new Set(['バナナ','りんご','ぶどう','レモン','いちご','みかん']);
+const V2_FISH=new Set(['鮭','サバ','ししゃも','まぐろ','えび']);
+const V2_MEAT=new Set(['ウインナー','ベーコン','ハム','豚ロース','豚こま','豚バラ','鶏もも','鶏むね','鶏ひき肉','合いびき肉','牛こま']);
+const V2_GOHAN=new Set(['食パン','お米','菓子パン','フランスパン','バターロール']);
+const V2_MEAT_DEL=new Set(['鶏肉','豚肉','牛肉','ひき肉']);   // 汎用肉は辞書から削除
+const V2_NOCAT=new Set(['豆腐','納豆','パスタ']);
+function v2cat(name,oldCat){
+  if(V2_FRUIT.has(name)) return '果物';
+  if(V2_FISH.has(name)) return '魚';
+  if(V2_MEAT.has(name)) return '肉';
+  if(V2_GOHAN.has(name)) return 'ごはん・パン';
+  if(V2_NOCAT.has(name)) return '';
+  if(oldCat==='肉・魚') return '肉';
+  if(oldCat==='パン') return 'ごはん・パン';
+  return oldCat||'';
+}
+const SUPER_ADD_V2=[
+  {name:'サバ',reading:'さば',category:'魚',icon:'fish'},
+  {name:'ししゃも',reading:'ししゃも',category:'魚',icon:'fish'},
+  {name:'豚ロース',reading:'ぶたろーす',category:'肉',icon:'meat'},
+  {name:'豚こま',reading:'ぶたこま',category:'肉',icon:'meat'},
+  {name:'豚バラ',reading:'ぶたばら',category:'肉',icon:'meat'},
+  {name:'鶏もも',reading:'とりもも',category:'肉',icon:'meat'},
+  {name:'鶏むね',reading:'とりむね',category:'肉',icon:'meat'},
+  {name:'鶏ひき肉',reading:'とりひきにく',category:'肉',icon:'meat'},
+  {name:'合いびき肉',reading:'あいびきにく',category:'肉',icon:'meat'},
+  {name:'牛こま',reading:'ぎゅうこま',category:'肉',icon:'meat'},
+  {name:'菓子パン',reading:'かしぱん',category:'ごはん・パン',icon:'bread'},
+  {name:'フランスパン',reading:'ふらんすぱん',category:'ごはん・パン',icon:'bread'},
+  {name:'バターロール',reading:'ばたーろーる',category:'ごはん・パン',icon:'bread'},
+];
+function migrateV2(push){
+  if(state.v2done) return false;
+  const sup=storeById('super');
+  if(sup){
+    // 1. カテゴリ構成を置換（ユーザーが手で足した独自カテゴリは末尾に残す）
+    const userCats=(sup.cats||[]).filter(c=> c && !SUPER_CATS_V2.includes(c) && c!=='肉・魚' && c!=='パン');
+    sup.cats=[...SUPER_CATS_V2, ...userCats];
+    // 2. 汎用肉を辞書から削除
+    DICT = DICT.filter(d=> !(d.store==='super' && V2_MEAT_DEL.has(d.name)));
+    state.dict = DICT;
+    // 3. スーパー商品のカテゴリを再分類
+    DICT.forEach(d=>{ if(d.store==='super') d.category=v2cat(d.name,d.category); });
+    // 4. 不足商品を追加（同名があれば足さない）
+    SUPER_ADD_V2.forEach(a=>{ if(!DICT.some(x=>x.store==='super' && x.name===a.name)) DICT.push({id:uid(),color:'',store:'super',...a}); });
+    // 5. 買い物リスト（スーパー）のカテゴリも合わせる
+    (state.items&&state.items.super||[]).forEach(it=>{ it.category=v2cat(it.name,it.category||''); });
+  }
+  // 6. 他店の候補を追加
+  EXTRA_DICT2.forEach(d=>{ if(!DICT.some(x=>x.name===d.name && x.store===d.store)) DICT.push({id:uid(),color:'',...d}); });
+  state.v2done=true;
+  localStorage.setItem(SKEY, JSON.stringify(state));
+  if(push && fbReady && fbRef) pushState();
+  return true;
 }
 
 const $=s=>document.querySelector(s);
@@ -1208,7 +1323,9 @@ function attachRoom(){
     state=normalizeState(v.data); STORES=state.stores; DICT=state.dict;
     localStorage.setItem(SKEY, JSON.stringify(state));
     render();
-    if(seedExtraDict(true)) render();   // 同期データに追加候補が無ければ足して部屋にも反映
+    let changed=seedExtraDict(true);    // 同期データに追加候補が無ければ足して部屋にも反映
+    if(migrateV2(true)) changed=true;   // スーパー再編＋他店追加も同様に
+    if(changed) render();
     applyingRemote=false;
   });
 }
@@ -1306,7 +1423,7 @@ function renderShareSheet(){
   updateShareStatus();
 }
 
-seedExtraDict(); renderTabs(); render(); shareResume();
+seedExtraDict(); migrateV2(); renderTabs(); render(); shareResume();
 
 /* ホーム画面アプリ（PWA）化：保存が消えないよう正式なアプリとして動かす＋オフライン対応 */
 if('serviceWorker' in navigator){
