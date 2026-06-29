@@ -138,8 +138,20 @@
   .sort-toggle button.sel{background:var(--accent);color:#fff;border-color:transparent;}
   .suggest{margin-top:12px;overflow-y:auto;flex:1;min-height:0;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
   .sug-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
-  .sug-tile{display:flex;align-items:center;gap:9px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:8px 10px;cursor:pointer;transition:transform .1s ease,background .15s ease;min-width:0;}
+  .sug-tile{position:relative;display:flex;align-items:center;gap:9px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:8px 10px;cursor:pointer;transition:transform .1s ease,background .15s ease,border-color .15s ease;min-width:0;}
   .sug-tile:active{transform:scale(.96);background:var(--accent-soft);}
+  .sug-tile.sel{border-color:var(--accent);background:var(--accent-soft);}
+  .sug-check{position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;display:none;place-items:center;box-shadow:var(--shadow-sm);}
+  .sug-check svg{width:11px;height:11px;}
+  .sug-tile.sel .sug-check{display:grid;}
+  /* まとめて選ぶ */
+  .multi-toggle{margin-top:8px;width:100%;border:1px solid var(--line);background:var(--card);color:var(--ink-2);border-radius:10px;padding:9px;font-size:12.5px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px;transition:transform .1s ease;}
+  .multi-toggle:active{transform:scale(.98);}
+  .multi-toggle.on{background:var(--accent);color:#fff;border-color:transparent;}
+  .multi-toggle svg{width:15px;height:15px;}
+  .multi-bar{display:none;padding-top:10px;}
+  .multi-bar.show{display:block;}
+  .multi-bar .add-btn{width:100%;padding:13px;}
   .sug-tile .sug-icon{width:30px;height:30px;flex:0 0 auto;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;}
   .sug-tile .sug-icon svg{width:17px;height:17px;}
   .sug-tile .sug-name{flex:1;min-width:0;font-size:12.5px;font-weight:700;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
@@ -271,7 +283,9 @@
     <input id="searchInput" type="text" placeholder="例：ぎゅうにゅう" autocomplete="off" />
   </div>
   <div class="sort-toggle" id="sortToggle"></div>
+  <button class="multi-toggle" id="multiToggle"></button>
   <div class="suggest" id="suggest"></div>
+  <div class="multi-bar" id="multiBar"><button class="add-btn" id="multiAdd"></button></div>
 </div>
 
 <div class="scrim" id="scrim2"></div>
@@ -1135,6 +1149,8 @@ const sheet=$('#sheet'),scrim=$('#scrim'),input=$('#searchInput'),suggest=$('#su
 let sheetMode='list',sheetStore=null,newCat=null,regOn=true,newIcon='default',newColor='';
 let newReading='',newReadingTouched=false;
 let suggestSort=localStorage.getItem('kaimono-sort')||'kana';   // 'kana'(50音) | 'freq'(よく買う順)
+let multiSelect=localStorage.getItem('kaimono-multi')==='1';    // まとめて選ぶモード
+let selected=new Set();                                          // 選択中の候補id
 scrim.onclick=closeSheet;
 $('#sheetClose').onclick=closeSheet;
 $('#sheet .grip').onclick=closeSheet;
@@ -1160,16 +1176,43 @@ function renderSortToggle(){
   t.querySelectorAll('button').forEach(b=> b.onclick=()=>{ suggestSort=b.dataset.s; localStorage.setItem('kaimono-sort',suggestSort); renderSortToggle(); renderSuggest(input.value); });
 }
 function bumpFreq(d){ if(d) d.freq=(d.freq||0)+1; }
+const checkSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+function renderMultiUI(){
+  const t=$('#multiToggle');
+  if(t){ t.className='multi-toggle'+(multiSelect?' on':''); t.innerHTML=(multiSelect?checkSvg:'')+'まとめて選ぶ'; }
+  const bar=$('#multiBar'); if(bar) bar.classList.toggle('show', multiSelect && selected.size>0);
+  const a=$('#multiAdd'); if(a) a.textContent=selected.size>0?(selected.size+'個をまとめて追加'):'追加';
+}
+function addSelected(){
+  [...selected].forEach(id=>{
+    const d=DICT.find(x=>x.id===id); if(!d) return;
+    bumpFreq(d);
+    if(sheetMode==='list'){
+      const arr=state.items[sheetStore];
+      const ex=arr.find(i=>i.name===d.name && (i.category||'')===(d.category||''));
+      if(ex){ ex.qty++; ex.done=false; } else arr.push({id:uid(),name:d.name,category:d.category||'',icon:d.icon,color:d.color||'',qty:1,done:false});
+    }else{
+      addToStock(d.name,d.icon,d.store,1,d.color||'');
+    }
+  });
+  selected.clear(); save(); render(); closeSheet();
+}
+$('#multiToggle').onclick=()=>{
+  multiSelect=!multiSelect; localStorage.setItem('kaimono-multi', multiSelect?'1':'0');
+  if(!multiSelect) selected.clear();
+  renderMultiUI(); renderSuggest(input.value);
+};
+$('#multiAdd').onclick=()=>{ if(selected.size) addSelected(); };
 $('#shareBtn').onclick=openShareSheet;
 $('#stockBtn').onclick=()=>{ tab='stock'; render(); };
 $('#settingsBtn').onclick=()=>{ tab='settings'; render(); };
 
 function openSheet(mode,storeId){
   sheetMode=mode; sheetStore=storeId; input.value=''; newCat=null; regOn=true; newIcon='default'; newColor='';
-  newReading=''; newReadingTouched=false;
+  newReading=''; newReadingTouched=false; selected.clear();
   if(mode==='stock'){ sheet.style.setProperty('--accent',NEUTRAL.accent); sheet.style.setProperty('--accent-soft','#EDEBE7'); $('#sheetTitle').textContent='在庫に追加'; }
   else{ const st=storeById(storeId); sheet.style.setProperty('--accent',st.accent); sheet.style.setProperty('--accent-soft',st.soft); $('#sheetTitle').textContent=st.name+'に追加'; }
-  renderSortToggle(); renderSuggest('');
+  renderSortToggle(); renderMultiUI(); renderSuggest('');
   scrim.classList.add('show'); sheet.classList.add('show');
   setTimeout(()=>input.focus(),280);
 }
@@ -1192,9 +1235,18 @@ function renderSuggest(q){
   matches.sort(cmp(store,hasCats));
 
   const sugTile=d=>{
-    const el=document.createElement('div'); el.className='sug-tile';
-    el.innerHTML='<div class="sug-icon"'+(d.color?' style="background:'+softOf(d.color)+';color:'+d.color+'"':'')+'>'+svgIcon(d.icon)+'</div><div class="sug-name">'+esc(d.name)+'</div>';
-    el.onclick=()=>{ bumpFreq(d); sheetMode==='list' ? addItem(d.name,d.category,d.icon,d.color) : addStock(d.name,d.icon,d.store,d.color); };
+    const el=document.createElement('div'); el.className='sug-tile'+(multiSelect&&selected.has(d.id)?' sel':'');
+    el.innerHTML='<div class="sug-icon"'+(d.color?' style="background:'+softOf(d.color)+';color:'+d.color+'"':'')+'>'+svgIcon(d.icon)+'</div><div class="sug-name">'+esc(d.name)+'</div>'+
+      '<span class="sug-check">'+checkSvg+'</span>';
+    el.onclick=()=>{
+      if(multiSelect){
+        if(selected.has(d.id)){ selected.delete(d.id); el.classList.remove('sel'); }
+        else{ selected.add(d.id); el.classList.add('sel'); }
+        renderMultiUI();
+      }else{
+        bumpFreq(d); sheetMode==='list' ? addItem(d.name,d.category,d.icon,d.color) : addStock(d.name,d.icon,d.store,d.color);
+      }
+    };
     return el;
   };
   if(matches.length){
